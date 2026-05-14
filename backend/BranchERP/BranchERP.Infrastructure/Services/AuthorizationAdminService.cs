@@ -48,7 +48,7 @@ namespace BranchERP.Infrastructure.Services
                 .Select(r => new RoleDto
                 {
                     Id = r.Id,
-                    Name = r.Name
+                    Name = r.Name !
                 })
                 .ToListAsync();
 
@@ -72,10 +72,10 @@ namespace BranchERP.Infrastructure.Services
                 })
                 .ToListAsync();
 
-            var dto = new RolePermissionsDto
+            var dto  = new RolePermissionsDto
             {
                 RoleId = role.Id,
-                RoleName = role.Name,
+                RoleName = role.Name !,
                 Permissions = permissions
             };
 
@@ -154,12 +154,12 @@ namespace BranchERP.Infrastructure.Services
 
         public async Task<ApiResponse<bool>> UpdateUserDataAsync(UpdateUserDataDto dto)
         {
-            var user = await _userManager.FindByIdAsync(dto.Id);
+            var user = await _userManager.FindByIdAsync(dto.Id !);
             if (user == null)
                 return ApiResponse<bool>.Fail("User not found");
 
             // تحديث البيانات الأساسية
-            user.DisplayName = dto.DisplayName;
+            user.DisplayName = dto.DisplayName !;
             user.Email = dto.Email;
             user.IsActive = dto.IsActive;
             user.UserType = (UserType)dto.UserType;

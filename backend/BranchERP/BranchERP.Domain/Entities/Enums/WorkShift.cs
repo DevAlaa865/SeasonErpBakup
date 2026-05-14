@@ -3,10 +3,10 @@
     public enum WorkShift
     {
         Morning = 1,
-        Noon = 2,
+        Night = 2,
         Afternoon = 3,
         Evening = 4,
-        Night = 5,
+        Noon = 5,
         Dawn = 6
     }
 }

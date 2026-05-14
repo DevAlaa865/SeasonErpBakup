@@ -11,8 +11,8 @@ namespace BranchERP.Api.Filters
             if (!context.ModelState.IsValid)
             {
                 var errors = context.ModelState
-                    .Where(x => x.Value.Errors.Count > 0)
-                    .SelectMany(kvp => kvp.Value.Errors.Select(e => new ErrorItem
+                    .Where(x => x.Value !.Errors.Count > 0)
+                    .SelectMany(kvp => kvp.Value !.Errors.Select(e => new ErrorItem
                     {
                         Code = "ValidationError",
                         Message = e.ErrorMessage

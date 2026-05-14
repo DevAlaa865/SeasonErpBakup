@@ -36,7 +36,7 @@ namespace BranchERP.Infrastructure.Services
             var roles = await _userManager.GetRolesAsync(user);
 
             var roleIds = await _context.Roles
-                .Where(r => roles.Contains(r.Name))
+                .Where(r => roles.Contains(r.Name!))
                 .Select(r => r.Id)
                 .ToListAsync();
 

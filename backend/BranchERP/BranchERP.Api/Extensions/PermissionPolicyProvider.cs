@@ -12,7 +12,7 @@ namespace BranchERP.Api.Extensions
             _fallbackPolicyProvider = new DefaultAuthorizationPolicyProvider(options);
         }
 
-        public Task<AuthorizationPolicy?> GetDefaultPolicyAsync()
+        public Task<AuthorizationPolicy> GetDefaultPolicyAsync()
             => _fallbackPolicyProvider.GetDefaultPolicyAsync();
 
         public Task<AuthorizationPolicy?> GetFallbackPolicyAsync()

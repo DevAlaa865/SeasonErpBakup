@@ -9,7 +9,8 @@ namespace BranchERP.Application.DTOs.Reports
     public class BranchShortageSummaryDto
     {
         public int ShortageTypeId { get; set; }
-        public string ShortageTypeName { get; set; }   // مثلاً: خصم، مشتريات، مكافأة، فرق جرد...
+        public string ShortageTypeName { get; set; } = string.Empty;
         public decimal Amount { get; set; }
     }
+
 }

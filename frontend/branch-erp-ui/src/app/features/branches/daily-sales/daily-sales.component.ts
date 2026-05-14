@@ -14,7 +14,8 @@ import { CustomSelectComponent } from '../../../shared/custom-select/custom-sele
   selector: 'app-daily-sales',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule,CustomSelectComponent],
-  templateUrl: './daily-sales.component.html'
+  templateUrl: './daily-sales.component.html',
+    styleUrls: ['./daily-sales.component.css']
 })
 export class DailySalesComponent implements OnInit {
 
@@ -65,10 +66,10 @@ export class DailySalesComponent implements OnInit {
   ngOnInit(): void {
     this.buildForm();
     this.loadLookups();
-    this.setTodayDate();
+
     this.setupTotalsCalculation();
     this.initHeaderFromUser();
-      this.checkTodayExists();
+     
       
   }
 preventEnter(event: Event) {
@@ -78,7 +79,7 @@ preventEnter(event: Event) {
     this.form = this.fb.group({
       branchId: [null, Validators.required],
       supervisorId: [null, Validators.required],
-      salesDate: ['', Validators.required],
+    salesDate: [new Date().toISOString().substring(0, 10), Validators.required],
 
       noSalesToday: [false],
       isBalanced: [false],
@@ -110,10 +111,6 @@ preventEnter(event: Event) {
     this.form.get('branchId')?.setValue(user.branchId);
     this.branchNameDisplay = decodeURIComponent(escape(String(user.branchName || '')));
 
-    const todayIso = new Date().toISOString().substring(0, 10);
-    this.form.get('salesDate')?.setValue(todayIso);
-    this.form.get('salesDate')?.disable({ emitEvent: false });
-    this.salesDateDisplay = todayIso;
 
     this.master.getBranchById(user.branchId).subscribe(res => {
       const branch = res?.data;
@@ -126,33 +123,7 @@ preventEnter(event: Event) {
       this.form.get('supervisorId')?.disable({ emitEvent: false });
     });
   }
-checkTodayExists() {
-  if (!this.userInfo || !this.userInfo.branchId) return;
 
-  const branchId = this.userInfo.branchId;
-  const todayIso = new Date().toISOString().substring(0, 10);
-
-  this.dailyService.exists(branchId, todayIso).subscribe({
-    next: exists => {
-      if (exists) {
-      Swal.fire({
-          toast: true,
-          position: 'top-end',
-          icon: 'info',
-          title: 'لقد قمت بإدخال يومية مبيعات لهذا الفرع في هذا التاريخ من قبل.',
-          showConfirmButton: false,
-          timer: 4000,
-          timerProgressBar: true
-        });
-        this.router.navigate(['/dashboard']);
-      }
-    },
-    error: err => {
-      console.error(err);
-      // ممكن تسيبها ساكتة أو تحط Alert عام
-    }
-  });
-}
   get shortageDetails(): FormArray {
     return this.form.get('shortageDetails') as FormArray;
   }
@@ -262,6 +233,16 @@ checkTodayExists() {
     row.get('discountNotes')?.clearValidators();
     row.get('discountNotes')?.setValue('');
   }
+  // 4) مرفق العجز → اختياري لو النوع فيه "مسموح"
+const attachmentControl = row.get('attachmentPath');
+if (attachmentControl) {
+  if (name.includes('مسموح')) {
+    attachmentControl.clearValidators(); // اختياري
+  } else {
+    attachmentControl.setValidators([Validators.required]); // إلزامي
+  }
+  attachmentControl.updateValueAndValidity();
+}
 
   row.get('employeeId')?.updateValueAndValidity();
   row.get('returnNotes')?.updateValueAndValidity();
@@ -346,7 +327,8 @@ onShortageFileSelected(event: Event, index: number) {
      this.network = Number(this.form.get('networkAmount')?.value || 0);
     this.credit = Number(this.form.get('creditAmount')?.value || 0);
 
-    const diff = this.grandTotal - (this.cash+this.network + this.credit);
+    const diffRaw = this.grandTotal - (this.cash + this.network + this.credit);
+    const diff = Number(diffRaw.toFixed(2));
     this.form.get('difference')?.setValue(diff, { emitEvent: false });
 
     this.updateDifferenceStatus(diff);
@@ -383,23 +365,29 @@ recalculateShortageEffect() {
    this.grandTotal = Number(this.form.get('grandTotal')?.value || 0);
 
   // الفرق الأساسي قبل العجز
-  let diff =(this.cash +this.network+ this.credit)- this.grandTotal ;
-
+/*   let diff =(this.cash +this.network+ this.credit)- this.grandTotal ;
+ */ let diffRaw = (this.cash + this.network + this.credit) - this.grandTotal;
   // طرح مجموع العجز
+
   let totalShortage = 0;
   this.shortageDetails.controls.forEach(row => {
     const amount = Number(row.get('amount')?.value || 0);
     totalShortage -= amount;
   });
-
-  diff -= totalShortage;
-
+  diffRaw -= totalShortage;
+/*   diff -= totalShortage; */
+   const diff = Number(diffRaw.toFixed(2));
   this.form.get('difference')?.setValue(diff, { emitEvent: false });
   this.updateDifferenceStatus(diff);
 }
 
 
 save() {
+    const creditControl = this.form.get('creditAmount');
+  if ( (creditControl?.value === null || creditControl?.value === '' || creditControl?.value === undefined)) {
+
+  creditControl?.setValue(0);
+    }
   const noSales = this.form.get('noSalesToday')?.value;
 
   // 🔹 نفس الفاليديشن لكن بـ Toast بدل alert
@@ -429,6 +417,69 @@ save() {
     });
     return;
   }
+  
+////
+const attachmentPath = this.form.get('attachmentPath')?.value;
+
+if (
+  !attachmentPath ||
+  typeof attachmentPath !== 'string' ||
+  attachmentPath.trim() === '' ||
+  attachmentPath.toLowerCase().includes('blank')
+) {
+  Swal.fire({
+    toast: true,
+    position: 'top-end',
+    icon: 'warning',
+    title: 'مسار مرفق اليومية غير صالح، برجاء إعادة رفع المرفق.',
+    showConfirmButton: false,
+    timer: 4000,
+    timerProgressBar: true
+  });
+  return;
+}
+
+// =======================================
+// ✅ التحقق من مرفقات العجز داخل shortageDetails
+// =======================================
+for (let i = 0; i < this.shortageDetails.length; i++) {
+  const row = this.shortageDetails.at(i);
+  const typeId = row.get('shortageTypeId')?.value;
+
+  // نجيب النوع من اللستة
+  const type = this.shortageTypes.find(t => t.id === typeId);
+  const name = type?.name || type?.shortageName || '';
+
+  // لو النوع فيه كلمة "مسموح" → المرفق اختياري
+  const isAllowed = name.includes('مسموح');
+
+  // لو مش مسموح → لازم مرفق
+  if (!isAllowed) {
+    const path = row.get('attachmentPath')?.value;
+
+    if (
+      !path ||
+      typeof path !== 'string' ||
+      path.trim() === '' ||
+      path.toLowerCase().includes('blank')
+    ) {
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'warning',
+        title: `الصف رقم ${i + 1}: مرفق العجز غير صالح أو غير موجود.`,
+        showConfirmButton: false,
+        timer: 4000,
+        timerProgressBar: true
+      });
+      return;
+    }
+  }
+}
+
+/////
+
+
 
   // 🔥 شرط جديد: لو اليوم ليس No Sales → لازم واحدة من الثلاثة > 0
   if (!noSales) {
@@ -461,6 +512,8 @@ save() {
       });
       return;
     }
+  
+
   }
 
   const diff = Number(this.form.get('difference')?.value || 0);
@@ -479,6 +532,34 @@ if (!noSales && diff < 0 && Math.abs(diff) >= 50) {
     return;
   }
 }
+const branchid = this.form.get('branchId')?.value;
+const salesDates = this.form.get('salesDate')?.value;
+  this.dailyService.exists(branchid, salesDates).subscribe({
+    next: exists => {
+      if (exists) {
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'info',
+          title: 'لقد قمت بإدخال يومية مبيعات لهذا الفرع في هذا التاريخ من قبل.',
+          showConfirmButton: false,
+          timer: 4000,
+          timerProgressBar: true
+        });
+        console.log(this.form.get('salesDate')?.value);
+        return; // ❌ وقف الحفظ
+      }
+
+      // ✔ لو مفيش تكرار → نكمل الحفظ
+   
+      this.doSave();
+    },
+    error: err => {
+      console.error(err);
+      // لو حصل Error في exists، نكمل الحفظ عادي
+      this.doSave();
+    }
+  });
   // 🔥 هنا بنعمل Check قبل الحفظ
   const branchId = this.form.get('branchId')?.value;
   const salesDate = this.form.get('salesDate')?.value;
@@ -497,30 +578,8 @@ if (!noSales && diff < 0 && Math.abs(diff) >= 50) {
   }
 
   // 🔥 اسأل الباك إند: هل اليومية موجودة؟
-  this.dailyService.exists(branchId, salesDate).subscribe({
-    next: exists => {
-      if (exists) {
-        Swal.fire({
-          toast: true,
-          position: 'top-end',
-          icon: 'info',
-          title: 'لقد قمت بإدخال يومية مبيعات لهذا الفرع في هذا التاريخ من قبل.',
-          showConfirmButton: false,
-          timer: 4000,
-          timerProgressBar: true
-        });
-        return; // ❌ وقف الحفظ
-      }
 
-      // ✔ لو مفيش تكرار → نكمل الحفظ
-      this.doSave();
-    },
-    error: err => {
-      console.error(err);
-      // لو حصل Error في exists، نكمل الحفظ عادي
-      this.doSave();
-    }
-  });
+
 }
 
 

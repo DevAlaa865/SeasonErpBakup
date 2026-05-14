@@ -7,8 +7,8 @@ import { jsPDF } from 'jspdf';
 import { MasterDataService } from '../../../services/master-data.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HasPermissionDirective } from "../../../core/directives/has-permission.directive";
-
-import { NgSelectModule } from '@ng-select/ng-select';
+import { CustomSelectComponent } from '../../../shared/custom-select/custom-select.component';
+import { IMAGE_BASE_URL } from '../../../api.config';
 interface ShortageDetail {
   id: number;
   shortageTypeId: number;
@@ -46,12 +46,12 @@ interface BranchDailySalesReport {
 @Component({
   selector: 'app-daily-sales-inquiry',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, HasPermissionDirective,  NgSelectModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, HasPermissionDirective,CustomSelectComponent],
   templateUrl: './daily-sales-inquiry.component.html',
   styleUrls: ['./daily-sales-inquiry.component.css']
 })
 export class DailySalesInquiryComponent implements OnInit {
-
+imageBaseUrl = IMAGE_BASE_URL;
   userInfo: any;
   isBranchUser = false;
   branches: any[] = [];
@@ -76,8 +76,8 @@ selectedBranch: any = null;
 // إعدادات الدروب داون
 
 
-  fileBaseUrl = 'https://localhost:7025/';
-  apiBaseUrl = 'https://localhost:7025';
+
+
 
   constructor(
     private fb: FormBuilder,
@@ -88,10 +88,31 @@ selectedBranch: any = null;
     private route: ActivatedRoute
   ) {}
 
-  getImageUrl(path: string | null | undefined): string {
+/*   getImageUrl(path: string | null | undefined): string {
     if (!path) return '';
-    return `${this.apiBaseUrl}/${path}`;
+  console.log("PATH FROM API:", path);
+console.log("IMAGE URL:", this.imageBaseUrl);
+    return `${this.imageBaseUrl}/${path}`;
   }
+ */
+
+  getImageUrl(path: string | null | undefined): string {
+  if (!path) return '';
+
+  // Replace backslashes
+  path = path.replace(/\\/g, "/");
+
+  // Remove leading slash
+  if (path.startsWith("/")) {
+    path = path.substring(1);
+  }
+
+  // Remove trailing slash from base URL
+  const base = this.imageBaseUrl.replace(/\/+$/, "");
+
+  return `${base}/${path}`;
+ 
+}
 
   ngOnInit(): void {
 
@@ -264,35 +285,17 @@ this.canApproveShortages = editPermissions.some(p => this.auth.hasPermission(p))
       });
   }
 
-  openImageAsPdf(path: string | null | undefined) {
-    if (!path) return;
+openImageAsPdf(path: string | null | undefined) {
+  if (!path) return;
 
-    const imageUrl = this.fileBaseUrl + path;
+  const imageUrl = this.getImageUrl(path);
+  window.open(imageUrl, "_blank");
+}
 
-    fetch(imageUrl)
-      .then(res => res.blob())
-      .then(blob => {
-        const reader = new FileReader();
 
-        reader.onload = () => {
-          const imgData = reader.result as string;
 
-          const pdf = new jsPDF({
-            orientation: 'portrait',
-            unit: 'pt',
-            format: 'a4'
-          });
 
-          const pageWidth = pdf.internal.pageSize.getWidth();
-          const pageHeight = pdf.internal.pageSize.getHeight();
 
-          pdf.addImage(imgData, 'JPEG', 0, 0, pageWidth, pageHeight);
-          pdf.output('dataurlnewwindow');
-        };
-
-        reader.readAsDataURL(blob);
-      });
-  }
 
   goBackToDashboard() {
     if(this.isBranchUser)

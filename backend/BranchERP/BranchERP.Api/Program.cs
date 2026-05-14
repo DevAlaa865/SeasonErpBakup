@@ -27,7 +27,7 @@ namespace BranchERP.Api
             // ============================
             // CORS
             // ============================
-            var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
+            var MyAllowSpecificOrigins = "_myAllowSpecificOrigins" ;
 
             builder.Services.AddCors(options =>
             {
@@ -172,16 +172,21 @@ namespace BranchERP.Api
             });
 
             app.UseMiddleware<ExceptionHandlingMiddleware>();
-
+            app.UseCors("AllowAll");
             app.UseAuthentication();
             app.UseAuthorization();
-            app.UseCors("AllowAll");
+          
             app.UseStaticFiles();
             app.MapControllers();
 
             // ============================
             // Run
             // ============================
+            using (var scope = app.Services.CreateScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                db.Database.Migrate();
+            }
             await app.RunAsync();
         }
     }

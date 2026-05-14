@@ -1,0 +1,15 @@
+<div class="upload-container">
+
+  <h2>رفع ملف تارجت الفروع اليومي</h2>
+
+  <input type="file" (change)="onFileChange($event)" accept=".xlsx, .xls" />
+
+  <button (click)="upload()" [disabled]="isUploading">
+    {{ isUploading ? 'جارٍ الرفع...' : 'رفع الملف' }}
+  </button>
+
+  <div *ngIf="message" [ngClass]="{ 'success': isSuccess, 'error': isSuccess === false }">
+    {{ message }}
+  </div>
+
+</div>

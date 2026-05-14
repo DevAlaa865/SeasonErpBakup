@@ -157,6 +157,100 @@ namespace BranchERP.Infrastructure.Migrations
                     b.ToTable("ActivityTypes");
                 });
 
+            modelBuilder.Entity("BranchERP.Domain.Entities.BranchDailyReturn", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BranchId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<decimal>("ReturnAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("ReturnDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ReturnType")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BranchId");
+
+                    b.ToTable("BranchDailyReturns", (string)null);
+                });
+
+            modelBuilder.Entity("BranchERP.Domain.Entities.BranchERP.Domain.Entities.BranchDailyPerformance", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal?>("AchievementPercentage")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("BranchAchievedAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("BranchId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("BranchInvoicesCountAchieved")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("BranchInvoicesCountTarget")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("BranchItemsCountAchieved")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("BranchItemsCountTarget")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("BranchTargetAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("TargetDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BranchId");
+
+                    b.ToTable("BranchDailyPerformances");
+                });
+
             modelBuilder.Entity("BranchERP.Domain.Entities.BranchSalesDaily", b =>
                 {
                     b.Property<int>("Id")
@@ -318,6 +412,40 @@ namespace BranchERP.Infrastructure.Migrations
                     b.ToTable("Cities");
                 });
 
+            modelBuilder.Entity("BranchERP.Domain.Entities.CommissionRule", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("FixedBonusAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal?>("MaxPercentage")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("MinPercentage")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("CommissionRules");
+                });
+
             modelBuilder.Entity("BranchERP.Domain.Entities.Country", b =>
                 {
                     b.Property<int>("Id")
@@ -350,6 +478,126 @@ namespace BranchERP.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Departments");
+                });
+
+            modelBuilder.Entity("BranchERP.Domain.Entities.EmployeePersonalAchievement", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("AchievedAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("AchievementPercentage")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("AttachmentPath")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("CommissionAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("EmployeePersonalTargetId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("EnteredAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("EnteredBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("InvoicesCount")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsTargetAchieved")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("ItemsCount")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EmployeePersonalTargetId")
+                        .IsUnique();
+
+                    b.ToTable("EmployeePersonalAchievements");
+                });
+
+            modelBuilder.Entity("BranchERP.Domain.Entities.EmployeePersonalTarget", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("EmployeeId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("PersonalTargetAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("ShiftHeaderId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Status")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EmployeeId");
+
+                    b.HasIndex("ShiftHeaderId");
+
+                    b.ToTable("EmployeePersonalTargets");
+                });
+
+            modelBuilder.Entity("BranchERP.Domain.Entities.EmployeeShiftTargetHeader", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BranchId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Shift")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("TargetDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("TotalPersonalTargetAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BranchId");
+
+                    b.ToTable("EmployeeShiftTargetHeaders");
                 });
 
             modelBuilder.Entity("BranchERP.Domain.Entities.Permission", b =>
@@ -768,6 +1016,28 @@ namespace BranchERP.Infrastructure.Migrations
                     b.Navigation("Branch");
                 });
 
+            modelBuilder.Entity("BranchERP.Domain.Entities.BranchDailyReturn", b =>
+                {
+                    b.HasOne("Branch", "Branch")
+                        .WithMany()
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Branch");
+                });
+
+            modelBuilder.Entity("BranchERP.Domain.Entities.BranchERP.Domain.Entities.BranchDailyPerformance", b =>
+                {
+                    b.HasOne("Branch", "Branch")
+                        .WithMany()
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Branch");
+                });
+
             modelBuilder.Entity("BranchERP.Domain.Entities.BranchSalesDaily", b =>
                 {
                     b.HasOne("Branch", "Branch")
@@ -821,6 +1091,47 @@ namespace BranchERP.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Country");
+                });
+
+            modelBuilder.Entity("BranchERP.Domain.Entities.EmployeePersonalAchievement", b =>
+                {
+                    b.HasOne("BranchERP.Domain.Entities.EmployeePersonalTarget", "EmployeePersonalTarget")
+                        .WithOne("Achievement")
+                        .HasForeignKey("BranchERP.Domain.Entities.EmployeePersonalAchievement", "EmployeePersonalTargetId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("EmployeePersonalTarget");
+                });
+
+            modelBuilder.Entity("BranchERP.Domain.Entities.EmployeePersonalTarget", b =>
+                {
+                    b.HasOne("Employee", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("BranchERP.Domain.Entities.EmployeeShiftTargetHeader", "ShiftHeader")
+                        .WithMany("PersonalTargets")
+                        .HasForeignKey("ShiftHeaderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Employee");
+
+                    b.Navigation("ShiftHeader");
+                });
+
+            modelBuilder.Entity("BranchERP.Domain.Entities.EmployeeShiftTargetHeader", b =>
+                {
+                    b.HasOne("Branch", "Branch")
+                        .WithMany()
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Branch");
                 });
 
             modelBuilder.Entity("BranchERP.Domain.Entities.Region", b =>
@@ -946,6 +1257,16 @@ namespace BranchERP.Infrastructure.Migrations
             modelBuilder.Entity("BranchERP.Domain.Entities.Country", b =>
                 {
                     b.Navigation("Cities");
+                });
+
+            modelBuilder.Entity("BranchERP.Domain.Entities.EmployeePersonalTarget", b =>
+                {
+                    b.Navigation("Achievement");
+                });
+
+            modelBuilder.Entity("BranchERP.Domain.Entities.EmployeeShiftTargetHeader", b =>
+                {
+                    b.Navigation("PersonalTargets");
                 });
 #pragma warning restore 612, 618
         }

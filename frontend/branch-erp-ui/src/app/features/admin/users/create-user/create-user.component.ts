@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { MasterDataService } from '../../../../services/master-data.service';
-
+import { API_BASE_URL } from '../../../../api.config';
 @Component({
   selector: 'app-create-user',
   standalone: true,
@@ -43,7 +43,7 @@ export class CreateUserComponent implements OnInit {
   branchError = '';
   cityError = '';
 
-  private baseUrl = 'https://localhost:7025';
+private baseUrl = API_BASE_URL;
 
   constructor(
     private http: HttpClient,
@@ -76,7 +76,7 @@ export class CreateUserComponent implements OnInit {
   }
 
   loadRoles() {
-    this.http.get<any>(`${this.baseUrl}/api/AuthorizationAdmin/roles`)
+    this.http.get<any>(`${this.baseUrl}/AuthorizationAdmin/roles`)
       .subscribe({
         next: res => {
           this.roles = res.data || [];
@@ -151,7 +151,7 @@ export class CreateUserComponent implements OnInit {
     this.isSaving = true;
     this.message = '';
 
-    this.http.post<any>(`${this.baseUrl}/api/Auth/register`, this.model)
+    this.http.post<any>(`${this.baseUrl}/Auth/register`, this.model)
       .subscribe({
         next: res => {
           this.isSaving = false;

@@ -9,6 +9,7 @@ import { HasPermissionDirective } from '../../../../core/directives/has-permissi
   standalone: true,
   imports: [CommonModule, HasPermissionDirective,RouterModule],
   templateUrl: './admin-dashboard.component.html',
+   styleUrl: './admin-dashboard.component.css',
    schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class AdminDashboardComponent implements OnInit {
@@ -35,7 +36,11 @@ export class AdminDashboardComponent implements OnInit {
   opendailySales() {
     this.router.navigate(['/branches/daily-sales']);
   }
-
+  openReportOfSales()
+  {
+      this.router.navigate(['/reports/city-branch-sales-summary']);
+    
+  }
   openRoles() {
     this.router.navigate(['/admin/role-permissions']);
   }
@@ -43,7 +48,10 @@ export class AdminDashboardComponent implements OnInit {
   openBranches() {
     this.router.navigate(['/admin/branch']);
   }
-
+    openSalesOfTarget()
+    {
+            this.router.navigate(['/branches/daily-target']);
+    }
 queries() {
   
   this.router.navigate(['/reports/daily-sales-inquiry']);
@@ -52,6 +60,22 @@ openReports()
 {
     this.router.navigate(['/reports/branch-daily-summary']);
 
+}
+/* opendailyBranchTarget()
+{
+   this.router.navigate(['/branches/daily-performance']);
+} */
+opendailyTarget()
+{
+   this.router.navigate(['/branches/performance-dashboard']);
+}
+opendailyTargetReport()
+{
+   this.router.navigate(['/reports/branch-daily-performance']);
+}
+openCommesionRecording()
+{
+    this.router.navigate(['/commission-rules']);
 }
   openAreas() {
     this.router.navigate(['/admin/areas']);

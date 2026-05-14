@@ -1,4 +1,5 @@
 ﻿using BranchERP.Domain.Entities;
+using BranchERP.Domain.Enums;
 
 public class BranchDailyTargetDetail : BaseEntity
 {
@@ -8,7 +9,7 @@ public class BranchDailyTargetDetail : BaseEntity
     public int EmployeeId { get; set; }
     public Employee Employee { get; set; } = null!;
 
-    public int Shift { get; set; }  // أو Enum لو عندك
+    public WorkShift Shift { get; set; }  // أو Enum لو عندك
 
     public decimal? EmployeeTarget { get; set; } = 0;
     public decimal? EmployeeAchieved { get; set; } = 0;

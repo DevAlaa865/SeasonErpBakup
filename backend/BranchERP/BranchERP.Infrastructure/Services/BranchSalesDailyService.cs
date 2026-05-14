@@ -373,7 +373,7 @@ namespace BranchERP.Infrastructure.Services
         }
 
         public async Task<ApiResponse<bool>> UpdateShortagesApprovalsAsync(
-    List<ShortageApprovalUpdateDto> items)
+        List<ShortageApprovalUpdateDto> items)
         {
             if (items == null || !items.Any())
                 return ApiResponse<bool>.Fail("لا توجد بيانات للتحديث");
@@ -412,6 +412,69 @@ namespace BranchERP.Infrastructure.Services
             await _unitOfWork.CompleteAsync();
 
             return ApiResponse<bool>.Ok(true, "تم تحديث الاعتمادات بنجاح");
+        }
+
+        public async Task<List<BranchNetworkShortageReportRowDto>> GetBranchNetworkShortagesAsync(BranchNetworkShortageFilterDto filter)
+        {
+            var query = _context.BranchSalesDailies
+                .Include(d => d.Branch)
+                .Include(d => d.ShortageDetails)
+                    .ThenInclude(s => s.ShortageType)
+                .AsQueryable();
+
+            // فلترة التاريخ
+            query = query.Where(d =>
+                d.SalesDate.Date >= filter.FromDate.Date &&
+                d.SalesDate.Date <= filter.ToDate.Date
+            );
+
+            // فلترة المدينة
+            if (filter.CityId.HasValue)
+                query = query.Where(d => d.Branch.CityId == filter.CityId.Value);
+
+            // نجيب كل الفروع في المدينة
+            var branches = await _context.Branches
+                .Where(b => !filter.CityId.HasValue || b.CityId == filter.CityId.Value)
+                .ToListAsync();
+
+            // نجيب كل أنواع العجز ماعدا مرتجعات واستبدال
+            var shortageTypes = await _context.ShortageTypes
+                .Where(t => t.ShortageName != "مرتجعات" && t.ShortageName != "استبدال")
+                .ToListAsync();
+
+            var result = new List<BranchNetworkShortageReportRowDto>();
+
+            foreach (var branch in branches)
+            {
+                var daily = await query
+                    .Where(d => d.BranchId == branch.Id)
+                    .ToListAsync();
+
+                var allShortages = daily
+                    .SelectMany(d => d.ShortageDetails)
+                    .Where(s => s.ShortageType.ShortageName != "مرتجعات" &&
+                                s.ShortageType.ShortageName != "استبدال")
+                    .ToList();
+
+                var row = new BranchNetworkShortageReportRowDto
+                {
+                    BranchId = branch.Id,
+                    BranchName = branch.BranchName,
+                    NetworkAmount = daily.Sum(d => d.NetworkAmount ?? 0),
+                    Shortages = shortageTypes.Select(t => new BranchShortageSummaryDto
+                    {
+                        ShortageTypeId = t.Id,
+                        ShortageTypeName = t.ShortageName,
+                        Amount = allShortages
+                            .Where(s => s.ShortageTypeId == t.Id)
+                            .Sum(s => s.Amount ?? 0)
+                    }).ToList()
+                };
+
+                result.Add(row);
+            }
+
+            return result;
         }
 
     }

@@ -25,12 +25,12 @@ namespace BranchERP.Infrastructure.Services
         {
             var repo = _unitOfWork.Repository<Branch>();
 
-            var branches = await repo.GetAllAsync(
-                filter: null,
+            var branches  = await repo.GetAllAsync(
+                filter : null,
                 include: q => q
                     .Include(b => b.City)
                     .Include(b => b.ActivityType)
-                    .Include(b => b.Supervisor)
+                    .Include(b => b.Supervisor !)
             );
 
             var data = _mapper.Map<IReadOnlyList<BranchDto>>(branches);

@@ -68,7 +68,7 @@ namespace BranchERP.Api.Controllers
 
         [HttpPost("update-shortages-approvals")]
         public async Task<IActionResult> UpdateShortagesApprovals(
-    [FromBody] List<ShortageApprovalUpdateDto> items)
+        [FromBody] List<ShortageApprovalUpdateDto> items)
         {
             var result = await _service.UpdateShortagesApprovalsAsync(items);
 
@@ -77,6 +77,14 @@ namespace BranchERP.Api.Controllers
 
             return Ok(result);
         }
+
+        [HttpPost("branch-network-shortages")]
+        public async Task<IActionResult> GetBranchNetworkShortages([FromBody] BranchNetworkShortageFilterDto filter)
+        {
+            var data = await _service.GetBranchNetworkShortagesAsync(filter);
+            return Ok(new { success = true, data });
+        }
+
 
     }
 }

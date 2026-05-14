@@ -42,3 +42,16 @@ logs/
 # ============================
 .vscode/
 .idea/
+# ============================
+# Backend (.NET)
+# ============================
+
+backend/**/bin/
+backend/**/obj/
+
+backend/BranchERP/BranchERP.Api/.vs/
+
+*.user
+*.suo
+*.userosscache
+*.sln.docstates

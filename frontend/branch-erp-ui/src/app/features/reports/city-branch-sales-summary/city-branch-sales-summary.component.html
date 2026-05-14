@@ -1,0 +1,91 @@
+<div class="p-6 mt-10">
+
+  <div
+    class="bg-white/10 dark:bg-slate-800/40 backdrop-blur-xl border border-white/20 dark:border-slate-700 rounded-2xl shadow-xl p-6 space-y-6">
+
+    <!-- العنوان -->
+    <h1 class="text-xl md:text-2xl font-bold text-[var(--text)]">
+      تقرير مبيعات المدن والفروع
+    </h1>
+
+    <!-- الفورم -->
+    <form [formGroup]="form" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+      <!-- من تاريخ -->
+      <div class="space-y-1">
+        <label class="text-[var(--text)] font-semibold">من تاريخ</label>
+        <input
+          type="date"
+          formControlName="fromDate"
+          class="w-full p-2 rounded-lg bg-white text-black border border-slate-300 focus:ring-2 focus:ring-emerald-500"
+        />
+      </div>
+
+      <!-- إلى تاريخ -->
+      <div class="space-y-1">
+        <label class="text-[var(--text)] font-semibold">إلى تاريخ</label>
+        <input
+          type="date"
+          formControlName="toDate"
+          class="w-full p-2 rounded-lg bg-white text-black border border-slate-300 focus:ring-2 focus:ring-emerald-500"
+        />
+      </div>
+
+      <!-- المدن -->
+      <div class="space-y-1 md:col-span-1">
+        <label class="text-[var(--text)] font-semibold">المنطقه</label>
+
+        <app-custom-select
+          class="w-full"
+          [items]="cities"
+          bindLabel="cityName"
+          bindValue="id"
+          placeholder="اختر المنطقه"
+          [multiple]="true"
+          [searchable]="true"
+          [control]="form.get('cityIds')">
+        </app-custom-select>
+      </div>
+
+      <!-- نوع النشاط -->
+      <div class="space-y-1">
+        <label class="text-[var(--text)] font-semibold">نوع النشاط</label>
+
+        <app-custom-select
+          class="w-full"
+          [items]="activityTypes"
+          bindLabel="activityName"
+          bindValue="id"
+          placeholder="اختر النشاط"
+          [control]="form.get('activityTypeId')">
+        </app-custom-select>
+      </div>
+
+      <!-- نوع الفرع -->
+      <div class="space-y-1">
+        <label class="text-[var(--text)] font-semibold">نوع الفرع</label>
+
+        <app-custom-select
+          class="w-full"
+          [items]="branchTypes"
+          bindLabel="label"
+          bindValue="value"
+          placeholder="نوع الفرع"
+          [control]="form.get('branchType')">
+        </app-custom-select>
+      </div>
+
+    </form>
+
+    <!-- زر عرض التقرير -->
+    <div class="pt-4">
+      <button
+        (click)="showResult()"
+        class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2 rounded-lg font-semibold shadow-md transition">
+        عرض التقرير
+      </button>
+    </div>
+
+  </div>
+
+</div>

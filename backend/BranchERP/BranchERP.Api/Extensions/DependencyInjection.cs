@@ -1,6 +1,8 @@
-﻿using BranchERP.Application.Interfaces;
+﻿using Application.Interfaces;
+using BranchERP.Application.Interfaces;
 using BranchERP.Infrastructure.Data;
 using BranchERP.Infrastructure.Services;
+using Infrastructure.Services;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace BranchERP.Api.Extensions
@@ -24,6 +26,13 @@ namespace BranchERP.Api.Extensions
             services.AddScoped<IAuthorizationAdminService, AuthorizationAdminService>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IPermissionService, PermissionService>();
+            services.AddScoped<ICityBranchSalesReportService, CityBranchSalesReportService>();
+            services.AddScoped<IBranchDailyTargetService, BranchDailyTargetService>();
+            services.AddScoped<IBranchDailyPerformanceService, BranchDailyPerformanceService>();
+            services.AddScoped<IEmployeeShiftTargetHeaderService, EmployeeShiftTargetHeaderService>();
+            services.AddScoped<IEmployeePersonalAchievementService, EmployeePersonalAchievementService>();
+            services.AddScoped<ICommissionRuleService, CommissionRuleService>();
+            services.AddScoped<IBranchDailyReturnService, BranchDailyReturnService>();
             services.AddScoped<TokenService>();
             // هنا بعدين هنضيف:
             // - Services

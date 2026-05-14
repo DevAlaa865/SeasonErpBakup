@@ -1,4 +1,5 @@
 ﻿using BranchERP.Domain.Entities;
+using BranchERP.Domain.Entities.BranchERP.Domain.Entities;
 using BranchERP.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -35,7 +36,12 @@ namespace BranchERP.Infrastructure.Data
         public DbSet<RolePermission> RolePermissions { get; set; }
         public DbSet<Department> Departments { get; set; }
         public DbSet<UserDepartment> UserDepartments { get; set; }
-
+        public DbSet<BranchDailyPerformance> BranchDailyPerformances { get; set; }
+        public DbSet<EmployeeShiftTargetHeader> EmployeeShiftTargetHeaders { get; set; }
+        public DbSet<EmployeePersonalTarget> EmployeePersonalTargets { get; set; }
+        public DbSet<EmployeePersonalAchievement> EmployeePersonalAchievements { get; set; }
+        public DbSet<CommissionRule> CommissionRules { get; set; }
+        public DbSet<BranchDailyReturn> BranchDailyReturns { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -169,6 +175,71 @@ namespace BranchERP.Infrastructure.Data
                 .WithMany()
                 .HasForeignKey(s => s.EmployeeId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // BranchDailyPerformance → Branch
+            modelBuilder.Entity<BranchDailyPerformance>()
+                .HasOne(b => b.Branch)
+                .WithMany()
+                .HasForeignKey(b => b.BranchId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // EmployeeShiftTargetHeader → Branch
+            modelBuilder.Entity<EmployeeShiftTargetHeader>()
+                .HasOne(h => h.Branch)
+                .WithMany()
+                .HasForeignKey(h => h.BranchId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // EmployeePersonalTarget → ShiftHeader
+            modelBuilder.Entity<EmployeePersonalTarget>()
+                .HasOne(t => t.ShiftHeader)
+                .WithMany(h => h.PersonalTargets)
+                .HasForeignKey(t => t.ShiftHeaderId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // EmployeePersonalTarget → Employee
+            modelBuilder.Entity<EmployeePersonalTarget>()
+                .HasOne(t => t.Employee)
+                .WithMany()
+                .HasForeignKey(t => t.EmployeeId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // EmployeePersonalAchievement → EmployeePersonalTarget
+            modelBuilder.Entity<EmployeePersonalAchievement>()
+                .HasOne(a => a.EmployeePersonalTarget)
+                .WithOne(t => t.Achievement)
+                .HasForeignKey<EmployeePersonalAchievement>(a => a.EmployeePersonalTargetId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // ============================
+            // BranchDailyReturn
+            // ============================
+            modelBuilder.Entity<BranchDailyReturn>()
+                .ToTable("BranchDailyReturns");
+
+            modelBuilder.Entity<BranchDailyReturn>()
+                .HasKey(r => r.Id);
+
+            modelBuilder.Entity<BranchDailyReturn>()
+                .Property(r => r.ReturnAmount)
+                .HasColumnType("decimal(18,2)")
+                .IsRequired();
+
+            modelBuilder.Entity<BranchDailyReturn>()
+                .Property(r => r.ReturnType)
+                .IsRequired();
+
+            modelBuilder.Entity<BranchDailyReturn>()
+                .Property(r => r.Notes)
+                .HasMaxLength(500);
+
+            modelBuilder.Entity<BranchDailyReturn>()
+                .HasOne(r => r.Branch)
+                .WithMany()
+                .HasForeignKey(r => r.BranchId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
         }
     }
 }

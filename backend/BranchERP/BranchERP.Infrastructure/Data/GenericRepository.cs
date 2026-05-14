@@ -66,5 +66,12 @@ namespace BranchERP.Infrastructure.Data
         {
             _dbSet.Remove(entity);
         }
+
+        public async Task DeleteAllAsync()
+        {
+            var all = await _dbSet.ToListAsync();
+            _dbSet.RemoveRange(all);
+        }
+
     }
 }
