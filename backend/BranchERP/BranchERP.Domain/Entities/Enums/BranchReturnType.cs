@@ -9,6 +9,9 @@ namespace BranchERP.Domain.Entities.Enums
     public enum BranchReturnType
     {
         Cash = 1,      // كاش
-        Replacement = 2 // استبدال
+        Replacement = 2, // استبدال
+        Tabby = 3,         // تابى
+        Tamara = 4         // تمارا
+
     }
 }

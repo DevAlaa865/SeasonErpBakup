@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "9CyN1Jnp0e0=",
+  "dgSpecHash": "KL+ew+fO6xs=",
   "success": true,
   "projectFilePath": "C:\\Season-ERP\\backend\\BranchERP\\BranchERP.Infrastructure\\BranchERP.Infrastructure.csproj",
   "expectedPackageFiles": [
@@ -114,7 +114,8 @@
       "filePath": "C:\\Season-ERP\\backend\\BranchERP\\BranchERP.Infrastructure\\BranchERP.Infrastructure.csproj",
       "libraryId": "Microsoft.Data.SqlClient",
       "targetGraphs": [
-        "net8.0"
+        "net8.0",
+        "net8.0/win-x86"
       ]
     }
   ]

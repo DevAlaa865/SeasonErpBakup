@@ -85,6 +85,11 @@ namespace BranchERP.Api.Controllers
             return Ok(new { success = true, data });
         }
 
-
+        [HttpPost("search")]
+        public async Task<IActionResult> Search([FromBody] BranchSalesDailySearchFilterDto filter)
+        {
+            var data = await _service.SearchAsync(filter);
+            return Ok(new { success = true, data });
+        }
     }
 }

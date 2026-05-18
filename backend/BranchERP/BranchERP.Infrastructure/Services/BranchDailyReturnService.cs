@@ -194,7 +194,7 @@ namespace Infrastructure.Services
             return true;
         }
 
-        public async Task<byte[]> ExportToExcelAsync(
+          public async Task<byte[]> ExportToExcelAsync(
             DateTime? fromDate,
             DateTime? toDate,
             int? branchId,
@@ -231,7 +231,15 @@ namespace Infrastructure.Services
                 ws.Cell(row, 2).Value = item.BranchNumber;
                 ws.Cell(row, 3).Value = item.BranchName;
                 ws.Cell(row, 4).Value = item.ReturnAmount;
-                ws.Cell(row, 5).Value = item.ReturnType == 1 ? "كاش" : "استبدال";
+                ws.Cell(row, 5).Value = item.ReturnType switch
+                {
+                    1 => "كاش",
+                    2 => "استبدال",
+                    3 => "تابى",
+                    4 => "تمارا",
+                    _ => "-"
+                };
+
                 ws.Cell(row, 6).Value = item.Notes;
                 row++;
             }
@@ -243,6 +251,38 @@ namespace Infrastructure.Services
             return stream.ToArray();
         }
 
+          public async Task<List<BranchDailyReturnChartDto>> GetChartDataAsync(
+            DateTime? fromDate,
+            DateTime? toDate,
+            int? branchId,
+            int? branchNumber,
+            int? cityId,
+            int? returnType
+)
+        {
+            var data = await GetReturnsAsync(
+                fromDate,
+                toDate,
+                branchId,
+                branchNumber,
+                cityId,
+                returnType
+            );
+
+            var grouped = data
+                .GroupBy(r => r.BranchName)
+                .Select(g => new BranchDailyReturnChartDto
+                {
+                    BranchName = g.Key,
+                    Cash = g.Where(x => x.ReturnType == 1).Sum(x => x.ReturnAmount),
+                    Replacement = g.Where(x => x.ReturnType == 2).Sum(x => x.ReturnAmount),
+                    Tabby = g.Where(x => x.ReturnType == 3).Sum(x => x.ReturnAmount),
+                    Tamara = g.Where(x => x.ReturnType == 4).Sum(x => x.ReturnAmount)
+                })
+                .ToList();
+
+            return grouped;
+        }
 
 
     }

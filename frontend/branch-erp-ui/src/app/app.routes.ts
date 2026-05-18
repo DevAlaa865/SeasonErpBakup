@@ -111,6 +111,24 @@ export const routes: Routes = [
               .then(m => m.DailyReturnsComponent)
         },
         {
+          path: 'branches/daily-returns-chart',
+          loadComponent: () =>
+            import('./features/branches/daily-returns/daily-returns-chart/daily-returns-chart.component')
+              .then(m => m.DailyReturnsChartComponent)
+        },
+        {
+          path: 'branches/branch-sales-daily-list',
+          loadComponent: () =>
+            import('./features/branches/branch-sales-daily-list/branch-sales-daily-list.component')
+              .then(m => m.BranchSalesDailyListComponent)
+        },
+        {
+        path: 'reports/branch-daily-difference-report',
+        loadComponent: () =>
+          import('./features/reports/branch-daily-difference-report/branch-daily-difference-report.component')
+            .then(m => m.BranchDailyDifferenceReportComponent)
+      },
+        {
         path: 'dashboard',
         loadComponent: () =>
           import('./features/admin/dashboard/admin-dashboard/admin-dashboard.component')

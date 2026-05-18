@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("BranchERP.Infrastructure")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+5bd3caccd41b2c4aa615379257c30563501e309d")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+5f12b22414e51b1036bc6f3769129c9d7d19ea23")]
 [assembly: System.Reflection.AssemblyProductAttribute("BranchERP.Infrastructure")]
 [assembly: System.Reflection.AssemblyTitleAttribute("BranchERP.Infrastructure")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

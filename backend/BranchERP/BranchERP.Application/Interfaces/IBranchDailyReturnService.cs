@@ -27,5 +27,13 @@ namespace Application.Interfaces
                 int? cityId,
                 int? returnType
             );
+        Task<List<BranchDailyReturnChartDto>> GetChartDataAsync(
+                DateTime? fromDate,
+                DateTime? toDate,
+                int? branchId,
+                int? branchNumber,
+                int? cityId,
+                int? returnType
+            );
     }
 }

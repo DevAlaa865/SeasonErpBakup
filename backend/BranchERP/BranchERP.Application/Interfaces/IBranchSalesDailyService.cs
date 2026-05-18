@@ -24,5 +24,7 @@ namespace BranchERP.Application.Interfaces
         Task<ApiResponse<bool>> UpdateShortagesApprovalsAsync(List<ShortageApprovalUpdateDto> items);
         Task<List<BranchNetworkShortageReportRowDto>> GetBranchNetworkShortagesAsync(BranchNetworkShortageFilterDto filter);
 
+        Task<List<BranchSalesDailyListRowDto>> SearchAsync(BranchSalesDailySearchFilterDto filter);
+
     }
 }

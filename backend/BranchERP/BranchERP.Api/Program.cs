@@ -27,7 +27,7 @@ namespace BranchERP.Api
             // ============================
             // CORS
             // ============================
-            var MyAllowSpecificOrigins = "_myAllowSpecificOrigins" ;
+            //var MyAllowSpecificOrigins = "_myAllowSpecificOrigins" ;
 
             builder.Services.AddCors(options =>
             {

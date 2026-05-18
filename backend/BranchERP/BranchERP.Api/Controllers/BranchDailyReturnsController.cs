@@ -92,7 +92,7 @@ namespace API.Controllers
             [FromQuery] int? branchNumber,
             [FromQuery] int? cityId,
             [FromQuery] int? returnType
-)
+           )
         {
             var fileBytes = await _returnService.ExportToExcelAsync(
                 fromDate,
@@ -110,6 +110,28 @@ namespace API.Controllers
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 fileName
             );
+        }
+
+        [HttpGet("chart")]
+        public async Task<IActionResult> GetChartData(
+                [FromQuery] DateTime? fromDate,
+                [FromQuery] DateTime? toDate,
+                [FromQuery] int? branchId,
+                [FromQuery] int? branchNumber,
+                [FromQuery] int? cityId,
+                [FromQuery] int? returnType
+            )
+        {
+            var result = await _returnService.GetChartDataAsync(
+                fromDate,
+                toDate,
+                branchId,
+                branchNumber,
+                cityId,
+                returnType
+            );
+
+            return Ok(new { success = true, data = result });
         }
 
     }

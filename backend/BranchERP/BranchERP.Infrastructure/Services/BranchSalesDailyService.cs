@@ -168,8 +168,9 @@ namespace BranchERP.Infrastructure.Services
                 d.SalesDate.Date <= filter.ToDate.Date
             );
 
-            if (filter.CityId.HasValue)
-                query = query.Where(d => d.Branch.CityId == filter.CityId);
+            if (filter.CityIds != null && filter.CityIds.Any())
+                query = query.Where(d => filter.CityIds.Contains(d.Branch.CityId));
+
 
             if (filter.ActivityTypeId.HasValue)
                 query = query.Where(d => d.Branch.ActivityTypeId == filter.ActivityTypeId);
@@ -300,9 +301,9 @@ namespace BranchERP.Infrastructure.Services
                 d.SalesDate.Date >= filter.FromDate.Date &&
                 d.SalesDate.Date <= filter.ToDate.Date
             );
+            if (filter.CityIds != null && filter.CityIds.Any())
+                query = query.Where(d => filter.CityIds.Contains(d.Branch.CityId));
 
-            if (filter.CityId.HasValue)
-                query = query.Where(d => d.Branch.CityId == filter.CityId);
 
             if (filter.ActivityTypeId.HasValue)
                 query = query.Where(d => d.Branch.ActivityTypeId == filter.ActivityTypeId);
@@ -476,6 +477,50 @@ namespace BranchERP.Infrastructure.Services
 
             return result;
         }
+
+
+        public async Task<List<BranchSalesDailyListRowDto>> SearchAsync(BranchSalesDailySearchFilterDto filter)
+        {
+            var query = _context.BranchSalesDailies
+                .Include(d => d.Branch)
+                .AsQueryable();
+
+            // فلترة التاريخ
+            query = query.Where(d =>
+                d.SalesDate.Date >= filter.FromDate.Date &&
+                d.SalesDate.Date <= filter.ToDate.Date
+            );
+
+            // فلترة بالفرع ID
+            if (filter.BranchId.HasValue)
+                query = query.Where(d => d.BranchId == filter.BranchId.Value);
+
+            // فلترة برقم الفرع
+            if (filter.BranchNumber.HasValue)
+                query = query.Where(d => d.Branch.BranchNumber == filter.BranchNumber.Value);
+
+            var data = await query
+                .OrderByDescending(d => d.SalesDate)
+                .Select(d => new BranchSalesDailyListRowDto
+                {
+                    Id = d.Id,
+                    BranchId = d.BranchId,
+                    BranchName = d.Branch.BranchName,
+                    SalesDate = d.SalesDate,
+
+                    CashAmount = d.CashAmount,
+                    NetworkAmount = d.NetworkAmount,
+                    CreditAmount = d.CreditAmount,
+
+                    TotalSales = d.TotalSales,
+                    GrandTotal = d.GrandTotal,
+                    Difference = d.Difference
+                })
+                .ToListAsync();
+
+            return data;
+        }
+
 
     }
 }
