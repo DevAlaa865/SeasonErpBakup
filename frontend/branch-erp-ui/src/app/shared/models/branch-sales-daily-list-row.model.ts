@@ -11,7 +11,9 @@ export interface BranchSalesDailyListRow {
   totalSales: number;
   grandTotal: number;
   difference: number;
-
+    invoiceCount: number;
+  quantityCount: number;
+  dataEntryUserName?: string;
   supervisorNotes?: string; // ملاحظات المشرف
   shortageDetails?: {
     shortageTypeName: string;

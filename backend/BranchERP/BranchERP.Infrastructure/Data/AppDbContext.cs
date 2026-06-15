@@ -42,6 +42,9 @@ namespace BranchERP.Infrastructure.Data
         public DbSet<EmployeePersonalAchievement> EmployeePersonalAchievements { get; set; }
         public DbSet<CommissionRule> CommissionRules { get; set; }
         public DbSet<BranchDailyReturn> BranchDailyReturns { get; set; }
+
+        public DbSet<BranchControlIssue> BranchControlIssues { get; set; }
+        public DbSet<BankTransferRequest> BankTransferRequests { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -65,6 +68,26 @@ namespace BranchERP.Infrastructure.Data
                 .OnDelete(DeleteBehavior.Restrict);
 
             // ============================
+            // Region ↔ Country
+            // ============================
+
+            modelBuilder.Entity<City>()
+                .HasOne(c => c.Region)
+                .WithMany(r => r.Cities)
+                .HasForeignKey(c => c.RegionId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // ============================
+            // City ↔ Region
+            // ============================
+
+            modelBuilder.Entity<Region>()
+                .HasOne(r => r.Country)
+                .WithMany(c => c.Regions)
+                .HasForeignKey(r => r.CountryId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
             // Branch ↔ ActivityType
             // ============================
             modelBuilder.Entity<Branch>()
@@ -147,7 +170,7 @@ namespace BranchERP.Infrastructure.Data
                 .WithMany()
                 .HasForeignKey(d => d.SupervisorId)
                 .OnDelete(DeleteBehavior.Restrict);
-          
+
             modelBuilder.Entity<BranchSalesDaily>()
             .HasIndex(d => new { d.BranchId, d.SalesDate })
             .IsUnique();
@@ -239,7 +262,105 @@ namespace BranchERP.Infrastructure.Data
                 .HasForeignKey(r => r.BranchId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // ============================
+            // BranchControlIssue
+            // ============================
+            modelBuilder.Entity<BranchControlIssue>()
+                .ToTable("BranchControlIssues");
 
+            modelBuilder.Entity<BranchControlIssue>()
+                .HasKey(b => b.Id);
+
+            modelBuilder.Entity<BranchControlIssue>()
+                .Property(b => b.DifferenceAmount)
+                .HasColumnType("decimal(18,2)")
+                .IsRequired();
+
+            modelBuilder.Entity<BranchControlIssue>()
+                .Property(b => b.SentByUser)
+                .HasMaxLength(100)
+                .IsRequired();
+
+            modelBuilder.Entity<BranchControlIssue>()
+                .Property(b => b.ControlNotes)
+                .HasMaxLength(1000);
+
+            modelBuilder.Entity<BranchControlIssue>()
+                .Property(b => b.ResolutionType)
+                .HasConversion<int?>(); // Enum → int
+
+            // Relations
+            modelBuilder.Entity<BranchControlIssue>()
+                .HasOne(b => b.Branch)
+                .WithMany()
+                .HasForeignKey(b => b.BranchId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<BranchControlIssue>()
+                .HasOne(b => b.SalesDaily)
+                .WithMany()
+                .HasForeignKey(b => b.SalesDailyId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
+            // BankTransferRequest
+            modelBuilder.Entity<BankTransferRequest>()
+           .ToTable("BankTransferRequests");
+
+            modelBuilder.Entity<BankTransferRequest>()
+                .HasKey(x => x.Id);
+
+            modelBuilder.Entity<BankTransferRequest>()
+                .Property(x => x.RequestNumber)
+                .HasMaxLength(50)
+                .IsRequired();
+
+            modelBuilder.Entity<BankTransferRequest>()
+                .Property(x => x.InvoiceNumber)
+                .HasMaxLength(100)
+                .IsRequired();
+
+            modelBuilder.Entity<BankTransferRequest>()
+                .Property(x => x.CustomerName)
+                .HasMaxLength(200)
+                .IsRequired();
+
+            modelBuilder.Entity<BankTransferRequest>()
+                .Property(x => x.CustomerMobile)
+                .HasMaxLength(50)
+                .IsRequired();
+
+            modelBuilder.Entity<BankTransferRequest>()
+                .Property(x => x.BankName)
+                .HasMaxLength(200)
+                .IsRequired();
+
+            modelBuilder.Entity<BankTransferRequest>()
+                .Property(x => x.Iban)
+                .HasMaxLength(100)
+                .IsRequired();
+
+            modelBuilder.Entity<BankTransferRequest>()
+                .Property(x => x.ApplicantSignature)
+                .HasColumnType("nvarchar(max)");
+
+            modelBuilder.Entity<BankTransferRequest>()
+                .Property(x => x.Notes)
+                .HasMaxLength(1000);
+
+            modelBuilder.Entity<BankTransferRequest>()
+                .Property(x => x.InvoiceAmount)
+                .HasColumnType("decimal(18,2)");
+
+            modelBuilder.Entity<BankTransferRequest>()
+                .Property(x => x.TransferAmount)
+                .HasColumnType("decimal(18,2)");
+
+            modelBuilder.Entity<BankTransferRequest>()
+                .HasOne(x => x.Branch)
+                .WithMany()
+                .HasForeignKey(x => x.BranchId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

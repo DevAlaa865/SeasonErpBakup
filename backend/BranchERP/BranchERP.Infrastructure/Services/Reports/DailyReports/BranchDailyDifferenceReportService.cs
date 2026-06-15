@@ -1,5 +1,6 @@
 ﻿using BranchERP.Application.DTOs.Reports.DailyReports;
 using BranchERP.Application.Interfaces.Reports.DailyReports;
+using BranchERP.Domain.Entities.Enums;
 using BranchERP.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
@@ -24,8 +25,11 @@ namespace BranchERP.Infrastructure.Services.Reports.DailyReports
                 .AsQueryable();
 
             // فلترة المدينة
-            if (filter.CityId.HasValue)
-                query = query.Where(x => x.Branch.CityId == filter.CityId.Value);
+            // فلترة المدن
+            if (filter.CityIds != null && filter.CityIds.Any())
+            {
+                query = query.Where(x => filter.CityIds.Contains(x.Branch.CityId));
+            }
 
             // فلترة الفروع
             if (filter.BranchIds != null && filter.BranchIds.Any())
@@ -35,22 +39,34 @@ namespace BranchERP.Infrastructure.Services.Reports.DailyReports
             if (filter.BranchNumber.HasValue)
                 query = query.Where(x => x.Branch.BranchNumber == filter.BranchNumber.Value);
 
-            // استبعاد الفرق = صفر
-            query = query.Where(x => x.Difference != 0);
+            // استبعاد الفرق = صفر فقط في حالة تقرير الفرق
+            if (filter.IsNetworkReport != true)
+            {
+                query = query.Where(x => x.Difference != 0);
+            }
 
             // 🔥 فلترة الفرق الجديدة
 
             // 1) عجز مسموح به: من -35 إلى -1
-            if (filter.IsAllowedShortage == true)
-                query = query.Where(x => x.Difference < 0 && x.Difference >= -35);
+            // 🔥 فلترة الفرق الجديدة
+            if (filter.IsNetworkReport != true)
+            {
+                // 1) عجز مسموح به: من -35 إلى -1
+                if (filter.IsAllowedShortage == true)
+                    query = query.Where(x => x.Difference < 0 && x.Difference >= -35);
 
-            // 2) عجز كبير: أقل من -35
-            if (filter.IsBigShortage == true)
-                query = query.Where(x => x.Difference < -35);
+                // 2) عجز كبير: أقل من -35
+                if (filter.IsBigShortage == true)
+                    query = query.Where(x => x.Difference < -35);
 
-            // 3) زيادة: أكبر من 0
-            if (filter.IsIncrease == true)
-                query = query.Where(x => x.Difference > 0);
+                // زيادة صغيرة (1 إلى 35)
+                if (filter.IsSmallIncrease == true)
+                    query = query.Where(x => x.Difference > 0 && x.Difference <= 35);
+
+                // زيادة كبيرة (> 35)
+                if (filter.IsBigIncrease == true)
+                    query = query.Where(x => x.Difference > 35);
+            }
 
             // فلترة التاريخ
             if (filter.FromDate.HasValue)
@@ -69,7 +85,9 @@ namespace BranchERP.Infrastructure.Services.Reports.DailyReports
                 BranchName = x.Branch.BranchName,
                 SalesDate = x.SalesDate,
                 Difference = x.Difference ?? 0,
-                NetworkAmount = x.NetworkAmount ?? 0
+                SalesDailyId = x.Id,
+                NetworkAmount = x.NetworkAmount ?? 0,
+                
             }).ToList();
 
             // لو تقرير شبكة فقط
@@ -87,5 +105,98 @@ namespace BranchERP.Infrastructure.Services.Reports.DailyReports
 
             return result;
         }
+
+        public async Task<List<AccountsReturnsDiscountsReportRowDto>> GetAccountsReturnsDiscountsReportAsync(
+            AccountsReturnsDiscountsReportFilterDto filter)
+        {
+            var query = _context.BranchSalesShortageDetails
+                .Include(s => s.BranchSalesDaily)
+                    .ThenInclude(d => d.Branch)
+                .Include(s => s.ShortageType)
+                .AsQueryable();
+
+            // تأمين ضد Null
+            query = query.Where(s => s.BranchSalesDaily != null);
+
+            // التاريخ
+            query = query.Where(s =>
+                s.BranchSalesDaily.SalesDate >= filter.FromDate &&
+                s.BranchSalesDaily.SalesDate <= filter.ToDate);
+
+            // المدينة
+            if (filter.CityId.HasValue)
+                query = query.Where(s =>
+                    s.BranchSalesDaily.Branch != null &&
+                    s.BranchSalesDaily.Branch.CityId == filter.CityId.Value);
+
+            // الفروع
+            if (filter.BranchIds != null && filter.BranchIds.Any())
+                query = query.Where(s =>
+                    s.BranchSalesDaily.Branch != null &&
+                    filter.BranchIds.Contains(s.BranchSalesDaily.BranchId));
+
+            // نوع العجز
+            if (filter.ShortageTypeId.HasValue)
+                query = query.Where(s => s.ShortageTypeId == filter.ShortageTypeId.Value);
+
+            // الحالة
+            if (filter.Status == ReturnsDiscountsApprovalStatus.Approved)
+            {
+                query = query.Where(s =>
+                    (
+                        (s.ShortageTypeId == 3 || s.ShortageTypeId == 6) &&
+                        s.IsReturnApproved == true
+                    )
+                    ||
+                    (
+                        (s.ShortageTypeId != 3 && s.ShortageTypeId != 6) &&
+                        s.IsDiscountApproved == true
+                    )
+                );
+            }
+            else if (filter.Status == ReturnsDiscountsApprovalStatus.NotApproved)
+            {
+                query = query.Where(s =>
+                    (
+                        (s.ShortageTypeId == 3 || s.ShortageTypeId == 6) &&
+                        (s.IsReturnApproved == false || s.IsReturnApproved == null)
+                    )
+                    ||
+                    (
+                        (s.ShortageTypeId != 3 && s.ShortageTypeId != 6) &&
+                        (s.IsDiscountApproved == false || s.IsDiscountApproved == null)
+                    )
+                );
+            }
+
+            var data = await query.ToListAsync();
+
+            var result = data.Select(s => new AccountsReturnsDiscountsReportRowDto
+            {
+                JournalDate = s.BranchSalesDaily?.SalesDate ?? DateTime.MinValue,
+
+                BranchId = s.BranchSalesDaily?.BranchId ?? 0,
+                BranchNumber = s.BranchSalesDaily?.Branch?.BranchNumber ?? 0,
+                BranchName = s.BranchSalesDaily?.Branch?.BranchName ?? "غير متوفر",
+
+                ShortageTypeId = s.ShortageTypeId,
+                ShortageTypeName = s.ShortageType?.ShortageName ?? "غير متوفر",
+
+                Amount = s.Amount ?? 0,
+
+                IsApproved =
+                    (s.ShortageTypeId == 3 || s.ShortageTypeId == 6)
+                        ? (s.IsReturnApproved == true)
+                        : (s.IsDiscountApproved == true),
+
+                // ⭐ ملاحظات إدارة المرتجعات
+                ReturnNotes = s.ReturnNotes
+            })
+            .ToList();
+
+            return result;
+        }
+
+
     }
 }

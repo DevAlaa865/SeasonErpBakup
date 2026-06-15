@@ -14,5 +14,6 @@ namespace BranchERP.Application.DTOs.Reports.DailyReports
         public DateTime SalesDate { get; set; }   // 🔥 جديد
         public decimal Difference { get; set; }
         public decimal NetworkAmount { get; set; }
+        public int SalesDailyId { get; set; }
     }
 }

@@ -69,10 +69,11 @@ namespace Infrastructure.Services
                 if (!decimal.TryParse(row[2]?.ToString(), out var amount))
                     continue;
 
-                if (!int.TryParse(row[3]?.ToString(), out var typeInt))
+                // تجاهل العمود الرابع (RturnTypeName)
+                if (!int.TryParse(row[4]?.ToString(), out var typeInt))
                     continue;
 
-                var notes = row[4]?.ToString();
+                var notes = row[5]?.ToString();
 
                 var branch = branches.FirstOrDefault(b => b.BranchNumber == branchNumber);
                 if (branch == null)

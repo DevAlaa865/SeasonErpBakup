@@ -4,11 +4,8 @@
     {
         public string CityName { get; set; } = string.Empty;
 
-        // الربط مع Country
-        public int CountryId { get; set; }
-        public Country Country { get; set; }
-
-        // المناطق التابعة للمدينة
-        public ICollection<Region> Regions { get; set; } = new List<Region>();
+        // الربط مع Region (المدينة تتبع منطقة)
+        public int RegionId { get; set; }
+        public Region Region { get; set; }
     }
 }

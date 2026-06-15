@@ -4,6 +4,7 @@ using BranchERP.Application.DTOs.Common;
 using BranchERP.Application.DTOs.Reports;
 using BranchERP.Application.Interfaces;
 using BranchERP.Domain.Entities;
+using BranchERP.Domain.Entities.Enums;
 using BranchERP.Domain.Enums;
 using BranchERP.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -118,7 +119,7 @@ namespace BranchERP.Infrastructure.Services
             entity.AccountingNotes = model.AccountingNotes;
             entity.AuditNotes = model.AuditNotes;
             entity.FinanceNotes = model.FinanceNotes;
-            entity.SalesDeptNotes = model.SalesDeptNotes;
+            entity.DataEntryUserName = model.DataEntryUserName;
             entity.ReturnsDeptNotes = model.ReturnsDeptNotes;
             entity.DiscountsDeptNotes = model.DiscountsDeptNotes;
 
@@ -185,10 +186,11 @@ namespace BranchERP.Infrastructure.Services
                 query = query.Where(d => d.Difference < 0);
 
             var data = await query
-                .GroupBy(d => new { d.BranchId, d.Branch.BranchName })
+                .GroupBy(d => new { d.BranchId, d.Branch.BranchName, d.Branch.BranchNumber })
                 .Select(g => new BranchDailySummaryRowDto
                 {
                     BranchId = g.Key.BranchId,
+                   BranchNumber = g.Key.BranchNumber,
                     BranchName = g.Key.BranchName,
 
                     CashAmount = g.Sum(x => x.CashAmount ?? 0),
@@ -248,41 +250,65 @@ namespace BranchERP.Infrastructure.Services
         /// <returns></returns>
         public async Task<List<ReturnsDiscountsManagementRowDto>> GetReturnsDiscountsManagementAsync(ReturnsDiscountsManagementFilterDto filter)
         {
-            var query = _context.BranchSalesDailies
-                .Where(d => d.SalesDate >= filter.FromDate && d.SalesDate <= filter.ToDate)
-                .Where(d => !filter.CityId.HasValue || d.Branch.CityId == filter.CityId.Value)
-                .Where(d => !filter.BranchId.HasValue || d.BranchId == filter.BranchId.Value)
-                .Select(d => new
-                {
-                    d.Id,
-                    d.SalesDate,
-                    d.BranchId,
-                    BranchName = d.Branch.BranchName,
-                    Shortages = d.ShortageDetails
-                });
+            var query = _context.BranchSalesShortageDetails
+                .Where(s => s.BranchSalesDaily.SalesDate >= filter.FromDate &&
+                            s.BranchSalesDaily.SalesDate <= filter.ToDate)
+                .Where(s => !filter.CityId.HasValue || s.BranchSalesDaily.Branch.CityId == filter.CityId.Value)
+                .Where(s => !filter.BranchId.HasValue || s.BranchSalesDaily.BranchId == filter.BranchId.Value)
+                .Where(s => !filter.ShortageTypeId.HasValue || s.ShortageTypeId == filter.ShortageTypeId.Value);
+
+            // فلتر الحالة
+            if (filter.Status == ReturnsDiscountsApprovalStatus.Approved)
+            {
+                query = query.Where(s =>
+
+                    // مرتجعات + استبدال → اعتماد المرتجعات
+                    (
+                        (s.ShortageTypeId == 3 || s.ShortageTypeId == 6) &&
+                        s.IsReturnApproved == true
+                    )
+
+                    ||
+
+                    // باقي الأنواع → اعتماد الخصومات
+                    (
+                        (s.ShortageTypeId != 3 && s.ShortageTypeId != 6) &&
+                        s.IsDiscountApproved == true
+                    )
+                );
+            }
+            else if (filter.Status == ReturnsDiscountsApprovalStatus.NotApproved)
+            {
+                query = query.Where(s =>
+
+                    // مرتجعات + استبدال → اعتماد المرتجعات
+                    (
+                        (s.ShortageTypeId == 3 || s.ShortageTypeId == 6) &&
+                        (!s.IsReturnApproved.HasValue || s.IsReturnApproved == false)
+                    )
+
+                    ||
+
+                    // باقي الأنواع → اعتماد الخصومات
+                    (
+                        (s.ShortageTypeId != 3 && s.ShortageTypeId != 6) &&
+                        (!s.IsDiscountApproved.HasValue || s.IsDiscountApproved == false)
+                    )
+                );
+            }
 
             var result = await query
-                .Select(x => new ReturnsDiscountsManagementRowDto
+                .Select(s => new ReturnsDiscountsManagementRowDto
                 {
-                    JournalDate = x.SalesDate,
-                    BranchId = x.BranchId,
-                    BranchName = x.BranchName,
+                    JournalDate = s.BranchSalesDaily.SalesDate,
+                    BranchId = s.BranchSalesDaily.BranchId,
+                    BranchName = s.BranchSalesDaily.Branch.BranchName,
 
-                    ReturnsAmount = x.Shortages
-                        .Where(s =>
-                            s.ShortageTypeId == 3 &&   // مرتجعات
-                            (s.IsReturnApproved == false || s.IsReturnApproved == null)
-                        )
-                        .Sum(s => s.Amount ?? 0),
+                    ShortageTypeId = s.ShortageTypeId,
+                    ShortageTypeName = s.ShortageType.ShortageName,
 
-                    DiscountsAmount = x.Shortages
-                        .Where(s =>
-                            s.ShortageTypeId == 1 &&   // خصومات
-                            (s.IsDiscountApproved == false || s.IsDiscountApproved == null)
-                        )
-                        .Sum(s => s.Amount ?? 0),
+                    Amount = s.Amount ?? 0
                 })
-                .Where(r => r.ReturnsAmount > 0 || r.DiscountsAmount > 0)
                 .ToListAsync();
 
             return result;

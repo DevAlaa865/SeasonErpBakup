@@ -11,8 +11,8 @@ namespace BranchERP.Application.DTOs.City
                 .MinimumLength(3).WithMessage("CityName must be at least 3 characters")
                 .MaximumLength(100).WithMessage("CityName must not exceed 100 characters");
 
-            RuleFor(x => x.CountryId)
-                .GreaterThan(0).WithMessage("CountryId must be greater than 0");
+            RuleFor(x => x.RegionId)
+                .GreaterThan(0).WithMessage("RegionId must be greater than 0");
         }
     }
 }

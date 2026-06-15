@@ -1,6 +1,7 @@
 ﻿using Application.Interfaces;
 using BranchERP.Application.Interfaces;
 using BranchERP.Application.Interfaces.Reports.DailyReports;
+using BranchERP.Application.Interfaces.Reports.SalesSummaryReports;
 using BranchERP.Infrastructure.Data;
 using BranchERP.Infrastructure.Services;
 using BranchERP.Infrastructure.Services.Reports.DailyReports;
@@ -36,6 +37,8 @@ namespace BranchERP.Api.Extensions
             services.AddScoped<ICommissionRuleService, CommissionRuleService>();
             services.AddScoped<IBranchDailyReturnService, BranchDailyReturnService>();
             services.AddScoped<IBranchDailyDifferenceReportService, BranchDailyDifferenceReportService>();
+            services.AddScoped<IBranchControlIssueService, BranchControlIssueService>();
+            services.AddScoped<ISalesSummaryReportService, SalesSummaryReportService>();
             services.AddScoped<TokenService>();
             // هنا بعدين هنضيف:
             // - Services

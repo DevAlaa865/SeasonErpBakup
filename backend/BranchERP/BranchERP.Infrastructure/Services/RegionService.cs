@@ -28,7 +28,7 @@ namespace BranchERP.Infrastructure.Services
 
             var regions = await repo.GetAllAsync(
                 filter: null,
-                include: q => q.Include(r => r.City)
+                include: q => q.Include(r => r.Country)
             );
 
             var data = _mapper.Map<IReadOnlyList<RegionDto>>(regions);
@@ -52,7 +52,7 @@ namespace BranchERP.Infrastructure.Services
 
             var regions = await repo.GetAllAsync(
                 filter,
-                include: q => q.Include(r => r.City)
+                include: q => q.Include(r => r.Country)
             );
 
             var paged = regions
@@ -74,7 +74,7 @@ namespace BranchERP.Infrastructure.Services
 
             var regions = await repo.GetAllAsync(
                 filter: r => r.Id == id,
-                include: q => q.Include(r => r.City)
+                include: q => q.Include(r => r.Country)
             );
 
             var entity = regions.FirstOrDefault();

@@ -33,7 +33,7 @@ namespace BranchERP.Application.DTOs.BranchSalesDaily
         public string? AccountingNotes { get; set; }
         public string? AuditNotes { get; set; }
         public string? FinanceNotes { get; set; }
-        public string? SalesDeptNotes { get; set; }
+        public string? DataEntryUserName { get; set; }
         public string? ReturnsDeptNotes { get; set; }
         public string? DiscountsDeptNotes { get; set; }
 

@@ -11,7 +11,10 @@ namespace BranchERP.Domain.Entities.Enums
         Cash = 1,      // كاش
         Replacement = 2, // استبدال
         Tabby = 3,         // تابى
-        Tamara = 4         // تمارا
+        Tamara = 4,         // تمارا
+        BankTransfere = 5,    // تحويل بنكى
+        FaultEntry=6,       // ادخال خطأ 
+        Other = 7           // اخري
 
     }
 }

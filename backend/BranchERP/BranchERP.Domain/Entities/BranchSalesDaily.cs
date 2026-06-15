@@ -1,4 +1,6 @@
-﻿namespace BranchERP.Domain.Entities
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace BranchERP.Domain.Entities
 {
     public class BranchSalesDaily : BaseEntity
     {
@@ -27,7 +29,9 @@
         public string? AccountingNotes { get; set; }
         public string? AuditNotes { get; set; }
         public string? FinanceNotes { get; set; }
-        public string? SalesDeptNotes { get; set; }
+      
+        [Column("SalesDeptNotes")]
+        public string? DataEntryUserName { get; set; }
         public string? ReturnsDeptNotes { get; set; }
         public string? DiscountsDeptNotes { get; set; }
 

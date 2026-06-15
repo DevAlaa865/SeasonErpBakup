@@ -157,6 +157,71 @@ namespace BranchERP.Infrastructure.Migrations
                     b.ToTable("ActivityTypes");
                 });
 
+            modelBuilder.Entity("BranchERP.Domain.Entities.BranchControlIssue", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BranchId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ControlNotes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<decimal>("DifferenceAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("DifferenceDirection")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsManagerApproved")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("ManagerApprovedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ManagerNotes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ManagerSignature")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("ResolutionType")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ResolvedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("SalesDailyId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("SalesDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("SentAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("SentByUser")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BranchId");
+
+                    b.HasIndex("SalesDailyId");
+
+                    b.ToTable("BranchControlIssues", (string)null);
+                });
+
             modelBuilder.Entity("BranchERP.Domain.Entities.BranchDailyReturn", b =>
                 {
                     b.Property<int>("Id")
@@ -280,6 +345,10 @@ namespace BranchERP.Infrastructure.Migrations
                     b.Property<decimal?>("CreditAmount")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<string>("DataEntryUserName")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("SalesDeptNotes");
+
                     b.Property<decimal?>("Difference")
                         .HasColumnType("decimal(18,2)");
 
@@ -309,9 +378,6 @@ namespace BranchERP.Infrastructure.Migrations
 
                     b.Property<DateTime>("SalesDate")
                         .HasColumnType("datetime2");
-
-                    b.Property<string>("SalesDeptNotes")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("SupervisorId")
                         .HasColumnType("int");
@@ -402,12 +468,12 @@ namespace BranchERP.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("CountryId")
+                    b.Property<int>("RegionId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CountryId");
+                    b.HasIndex("RegionId");
 
                     b.ToTable("Cities");
                 });
@@ -629,7 +695,7 @@ namespace BranchERP.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("CityId")
+                    b.Property<int>("CountryId")
                         .HasColumnType("int");
 
                     b.Property<string>("RegionName")
@@ -638,7 +704,7 @@ namespace BranchERP.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CityId");
+                    b.HasIndex("CountryId");
 
                     b.ToTable("Regions");
                 });
@@ -1016,6 +1082,25 @@ namespace BranchERP.Infrastructure.Migrations
                     b.Navigation("Branch");
                 });
 
+            modelBuilder.Entity("BranchERP.Domain.Entities.BranchControlIssue", b =>
+                {
+                    b.HasOne("Branch", "Branch")
+                        .WithMany()
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("BranchERP.Domain.Entities.BranchSalesDaily", "SalesDaily")
+                        .WithMany()
+                        .HasForeignKey("SalesDailyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Branch");
+
+                    b.Navigation("SalesDaily");
+                });
+
             modelBuilder.Entity("BranchERP.Domain.Entities.BranchDailyReturn", b =>
                 {
                     b.HasOne("Branch", "Branch")
@@ -1084,13 +1169,13 @@ namespace BranchERP.Infrastructure.Migrations
 
             modelBuilder.Entity("BranchERP.Domain.Entities.City", b =>
                 {
-                    b.HasOne("BranchERP.Domain.Entities.Country", "Country")
+                    b.HasOne("BranchERP.Domain.Entities.Region", "Region")
                         .WithMany("Cities")
-                        .HasForeignKey("CountryId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasForeignKey("RegionId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("Country");
+                    b.Navigation("Region");
                 });
 
             modelBuilder.Entity("BranchERP.Domain.Entities.EmployeePersonalAchievement", b =>
@@ -1136,13 +1221,13 @@ namespace BranchERP.Infrastructure.Migrations
 
             modelBuilder.Entity("BranchERP.Domain.Entities.Region", b =>
                 {
-                    b.HasOne("BranchERP.Domain.Entities.City", "City")
+                    b.HasOne("BranchERP.Domain.Entities.Country", "Country")
                         .WithMany("Regions")
-                        .HasForeignKey("CityId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasForeignKey("CountryId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("City");
+                    b.Navigation("Country");
                 });
 
             modelBuilder.Entity("BranchERP.Domain.Entities.RolePermission", b =>
@@ -1249,14 +1334,9 @@ namespace BranchERP.Infrastructure.Migrations
                     b.Navigation("ShortageDetails");
                 });
 
-            modelBuilder.Entity("BranchERP.Domain.Entities.City", b =>
-                {
-                    b.Navigation("Regions");
-                });
-
             modelBuilder.Entity("BranchERP.Domain.Entities.Country", b =>
                 {
-                    b.Navigation("Cities");
+                    b.Navigation("Regions");
                 });
 
             modelBuilder.Entity("BranchERP.Domain.Entities.EmployeePersonalTarget", b =>
@@ -1267,6 +1347,11 @@ namespace BranchERP.Infrastructure.Migrations
             modelBuilder.Entity("BranchERP.Domain.Entities.EmployeeShiftTargetHeader", b =>
                 {
                     b.Navigation("PersonalTargets");
+                });
+
+            modelBuilder.Entity("BranchERP.Domain.Entities.Region", b =>
+                {
+                    b.Navigation("Cities");
                 });
 #pragma warning restore 612, 618
         }

@@ -1,4 +1,5 @@
-﻿using BranchERP.Application.Interfaces;
+﻿using BranchERP.Application.DTOs.Branch;
+using BranchERP.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BranchERP.Api.Controllers
@@ -47,6 +48,12 @@ namespace BranchERP.Api.Controllers
             var result = await _branchService.GetByCityIdAsync(cityId);
             return Ok(result);
         }
+        [HttpPost("by-cities")]
+        public async Task<IActionResult> GetByCities([FromBody] BranchByCitiesDto model)
+        {
+            var result = await _branchService.GetByCityIdsAsync(model.CityIds);
 
+            return Ok(result);
+        }
     }
 }

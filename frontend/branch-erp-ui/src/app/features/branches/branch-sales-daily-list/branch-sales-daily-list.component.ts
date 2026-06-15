@@ -23,12 +23,13 @@ import { DailyHeaderAttachmentService } from '../../../services/daily-header-att
 import { IMAGE_BASE_URL } from '../../../api.config';
 import { BranchSalesDailyListRow } from '../../../shared/models/branch-sales-daily-list-row.model';
 import { BranchSalesDailyDetails } from '../../../shared/models/branch-sales-daily-details.model';
+import { HasPermissionDirective } from '../../../core/directives/has-permission.directive';
 
 
 @Component({
   selector: 'app-branch-sales-daily-list',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, CustomSelectComponent],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, CustomSelectComponent,HasPermissionDirective],
   templateUrl: './branch-sales-daily-list.component.html',
   styleUrls: ['./branch-sales-daily-list.component.scss']
 })
@@ -49,7 +50,7 @@ rows: BranchSalesDailyListRow[] = [];
   editForm!: FormGroup;
 selectedDaily: BranchSalesDailyListRow | null = null;
 selectedDailyDetails: BranchSalesDailyDetails | null = null;
-
+branchActivityName: string = '';
 
   // 🔥 بيانات العجز داخل نافذة التعديل
   shortageTypes: any[] = [];
@@ -171,6 +172,9 @@ getImageUrl(path: string | null | undefined): string {
         const data = res.data || res;
         this.selectedDaily = data;
         this.buildEditForm(data);
+       this.masterData.getBranchById(data.branchId).subscribe(b => {
+       this.branchActivityName = b.data?.activityTypeName || '';
+});
       },
       error: () => {
         alert('حدث خطأ أثناء تحميل بيانات اليومية');
@@ -178,31 +182,37 @@ getImageUrl(path: string | null | undefined): string {
     });
   }
 
-  buildEditForm(data: any): void {
-    this.editForm = this.fb.group({
-      id: [data.id],
-      branchId: [data.branchId],
-      supervisorId: [data.supervisorId],
-      salesDate: [data.salesDate ? data.salesDate.substring(0, 10) : null, Validators.required],
-      totalSales: [data.totalSales, [Validators.required, Validators.min(0)]],
-      cashAmount: [data.cashAmount, [Validators.required, Validators.min(0)]],
-      networkAmount: [data.networkAmount, [Validators.required, Validators.min(0)]],
-      creditAmount: [data.creditAmount ?? 0, [Validators.min(0)]],
-      grandTotal: [data.grandTotal, [Validators.required, Validators.min(0)]],
-      difference: [{ value: data.difference, disabled: true }],
-      supervisorNotes: [data.supervisorNotes || ''],
-      // 🔥 مرفق اليومية (الهيدر)
-      attachmentPath: [data.attachmentPath || ''],
-      shortageDetails: this.fb.array([])
-    });
+buildEditForm(data: any): void {
+  this.editForm = this.fb.group({
+    id: [data.id],
+    branchId: [data.branchId],
+    supervisorId: [data.supervisorId],
+    salesDate: [data.salesDate ? data.salesDate.substring(0, 10) : null, Validators.required],
+    totalSales: [data.totalSales, [Validators.required, Validators.min(0)]],
+    cashAmount: [data.cashAmount, [Validators.required, Validators.min(0)]],
+    networkAmount: [data.networkAmount, [Validators.required, Validators.min(0)]],
+    creditAmount: [data.creditAmount ?? 0, [Validators.min(0)]],
+    grandTotal: [data.grandTotal, [Validators.required, Validators.min(0)]],
+    difference: data.difference,
+    supervisorNotes: [data.supervisorNotes || ''],
+    dataEntryUserName: [data.dataEntryUserName || ''],
+    // 🔥 الحقول الجديدة
+    invoiceCount: [data.totalInvoicesCount  ?? 0, [Validators.required, Validators.min(0)]],
+    quantityCount: [data.totalQuantities  ?? 0, [Validators.required, Validators.min(0)]],
 
-    if (data.shortageDetails && data.shortageDetails.length > 0) {
-      data.shortageDetails.forEach((row: any) => this.addEditShortageRow(row));
-    }
+    // 🔥 مرفق اليومية
+    attachmentPath: [data.attachmentPath || ''],
 
-    this.setupEditTotalsCalculation();
-    this.recalcEditDifference();
+    shortageDetails: this.fb.array([])
+  });
+
+  if (data.shortageDetails && data.shortageDetails.length > 0) {
+    data.shortageDetails.forEach((row: any) => this.addEditShortageRow(row));
   }
+
+  this.setupEditTotalsCalculation();
+}
+
 
   get editShortageDetails(): FormArray {
     return this.editForm.get('shortageDetails') as FormArray;
@@ -362,27 +372,48 @@ getImageUrl(path: string | null | undefined): string {
     this.editForm.get('grandTotal')?.valueChanges.subscribe(() => this.recalcEditDifference());
   }
 
-  recalcEditDifference(): void {
-    if (!this.editForm) return;
+recalcEditDifference(): void {
+  if (!this.editForm) return;
 
-    const cash = Number(this.editForm.get('cashAmount')?.value || 0);
-    const network = Number(this.editForm.get('networkAmount')?.value || 0);
-    const credit = Number(this.editForm.get('creditAmount')?.value || 0);
-    const grandTotal = Number(this.editForm.get('grandTotal')?.value || 0);
+  const cash = Number(this.editForm.get('cashAmount')?.value || 0);
+  const network = Number(this.editForm.get('networkAmount')?.value || 0);
+  const credit = Number(this.editForm.get('creditAmount')?.value || 0);
+  const grandTotal = Number(this.editForm.get('grandTotal')?.value || 0);
 
-    let diffRaw = grandTotal - (cash + network + credit);
+  // 🔥 الفرق الأساسي قبل العجز (نفس اليومية الأصلية)
+  let diffRaw = (cash + network + credit) - grandTotal;
 
-    let totalShortage = 0;
-    this.editShortageDetails.controls.forEach(row => {
-      const amount = Number(row.get('amount')?.value || 0);
-      totalShortage -= amount;
-    });
+  // 🔥 طرح مجموع العجز (نفس اليومية الأصلية)
+  let totalShortage = 0;
+this.editShortageDetails.controls.forEach(row => {
+  const amount = Number(row.get('amount')?.value || 0);
 
-    diffRaw -= totalShortage;
+  const typeId = row.get('shortageTypeId')?.value;
+  const type = this.shortageTypes.find(t => t.id === typeId);
+  const shortageName = type?.name || type?.shortageName || '';
 
-    const diff = Number(diffRaw.toFixed(2));
-    this.editForm.get('difference')?.setValue(diff, { emitEvent: false });
+  // 🔥 هل الفرع نشاطه ملابس؟
+  const isClothesBranch = this.branchActivityName.includes('ملابس');
+
+  // 🔥 هل نوع العجز "مرتجعات"؟
+  const isReturnOrReplacement =
+    shortageName.includes('مرتجع') ||
+    shortageName.includes('مرتجعات') 
+   /*  shortageName.includes('استبدال'); */
+
+  // ⭐ لو الفرع ملابس والعجز مرتجع → نتجاهله
+  if (isClothesBranch && isReturnOrReplacement) {
+    return;
   }
+    totalShortage -= amount; // ← نفس منطق اليومية الأصلية
+  });
+
+  diffRaw -= totalShortage;
+
+  const diff = Number(diffRaw.toFixed(2));
+  this.editForm.get('difference')?.setValue(diff, { emitEvent: false });
+}
+
 
   // ============================
   // 🔥 حفظ التعديلات
@@ -403,7 +434,13 @@ getImageUrl(path: string | null | undefined): string {
     }
 
     const payload = this.editForm.getRawValue();
+  // 🔥 أهم خطوة — إرسال الحقول الصحيحة للباك
+  payload.totalInvoicesCount = payload.invoiceCount;
+  payload.totalQuantities = payload.quantityCount;
 
+  delete payload.invoiceCount;
+  delete payload.quantityCount;
+  
     this.dailyService.update(payload.id, payload).subscribe({
       next: () => {
         this.closeEditDialog();
@@ -470,6 +507,19 @@ deleteDaily() {
       this.search(); // أو loadData()
     }
   });
+}
+preventNegative(event: KeyboardEvent) {
+  if (event.key === '-' || event.key === 'Minus') {
+    event.preventDefault();
+  }
+}
+fixNegative(event: any) {
+  const value = event.target.value;
+  if (value < 0) {
+    event.target.value = Math.abs(value);
+    const control = this.editShortageDetails.controls.find(c => c.get('amount')?.value === value);
+    if (control) control.get('amount')?.setValue(Math.abs(value));
+  }
 }
 
 }

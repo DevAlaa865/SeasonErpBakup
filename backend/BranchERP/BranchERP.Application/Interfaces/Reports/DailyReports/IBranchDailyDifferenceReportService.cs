@@ -10,5 +10,8 @@ namespace BranchERP.Application.Interfaces.Reports.DailyReports
     public interface IBranchDailyDifferenceReportService
     {
         Task<List<BranchDailyDifferenceReportDto>> GetBranchDailyDifferenceReportAsync(BranchDailyDifferenceReportFilterDto filter);
+        Task<List<AccountsReturnsDiscountsReportRowDto>> GetAccountsReturnsDiscountsReportAsync(
+               AccountsReturnsDiscountsReportFilterDto filter);
+
     }
 }

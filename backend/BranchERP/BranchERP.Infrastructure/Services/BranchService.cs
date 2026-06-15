@@ -159,6 +159,25 @@ namespace BranchERP.Infrastructure.Services
             var data = _mapper.Map<IReadOnlyList<BranchDto>>(branches);
             return ApiResponse<IReadOnlyList<BranchDto>>.Ok(data);
         }
+        public async Task<ApiResponse<IReadOnlyList<BranchDto>>> GetByCityIdsAsync(List<int> cityIds)
+        {
+            var repo = _unitOfWork.Repository<Branch>();
 
+            var excludedBranchNumbers = new[] { 501, 502, 631, 195, 186 };
+
+            var branches = await repo.GetAllAsync(
+                filter: b =>
+                    cityIds.Contains(b.CityId) &&
+                    !excludedBranchNumbers.Contains(b.BranchNumber),
+                include: q => q
+                    .Include(b => b.City)
+                    .Include(b => b.ActivityType)
+                    .Include(b => b.Supervisor!)
+            );
+
+            var data = _mapper.Map<IReadOnlyList<BranchDto>>(branches);
+
+            return ApiResponse<IReadOnlyList<BranchDto>>.Ok(data);
+        }
     }
 }

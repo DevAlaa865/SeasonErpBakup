@@ -21,6 +21,17 @@ namespace BranchERP.Api.Controllers.Reports
             var data = await _reportService.GetBranchDailyDifferenceReportAsync(filter);
             return Ok(new { success = true, data });
         }
+
+        [HttpPost("GetAccountsReturnsDiscountsReport")]
+        public async Task<IActionResult> GetAccountsReturnsDiscountsReport(
+        [FromBody] AccountsReturnsDiscountsReportFilterDto filter)
+        {
+            var data = await _reportService.GetAccountsReturnsDiscountsReportAsync(filter);
+            return Ok(new { success = true, data });
+        }
+
+
+
     }
 
 }

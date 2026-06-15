@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
 using BranchERP.Application.DTOs.ActivityType;
+using BranchERP.Application.DTOs.BankTransferRequests;
+using BranchERP.Application.DTOs.BranchControlIssues;
 using BranchERP.Application.DTOs.BranchDailyPerformance;
 using BranchERP.Application.DTOs.BranchDailyReturnDto;
 using BranchERP.Application.DTOs.BranchDailyTarget;
@@ -24,18 +26,26 @@ namespace BranchERP.Application.Mapping
         public MappingProfile()
         {
             // ============================
-            // Country / City / Region
+            // Country
             // ============================
             CreateMap<Country, CountryDto>().ReverseMap();
             CreateMap<Country, CountryCreateUpdateDto>().ReverseMap();
 
-            CreateMap<City, CityDto>()
-                .ForMember(dest => dest.CountryName, opt => opt.MapFrom(src => src.Country.CountryName));
-            CreateMap<City, CityCreateUpdateDto>().ReverseMap();
-
+            // ============================
+            // Region
+            // ============================
             CreateMap<Region, RegionDto>()
-                .ForMember(dest => dest.CityName, opt => opt.MapFrom(src => src.City.CityName));
+                .ForMember(dest => dest.CountryName, opt => opt.MapFrom(src => src.Country.CountryName));
+
             CreateMap<RegionCreateUpdateDto, Region>().ReverseMap();
+
+            // ============================
+            // City
+            // ============================
+            CreateMap<City, CityDto>()
+                .ForMember(dest => dest.RegionName, opt => opt.MapFrom(src => src.Region.RegionName));
+
+            CreateMap<CityCreateUpdateDto, City>().ReverseMap();
             // ============================
             // Branch
             // ============================
@@ -75,7 +85,9 @@ namespace BranchERP.Application.Mapping
                 .ForMember(d => d.ShortageTypeName,
                     opt => opt.MapFrom(s => s.ShortageType.ShortageName))
                 .ForMember(d => d.EmployeeName,
-                    opt => opt.MapFrom(s => s.Employee != null ? s.Employee.FullName : null));
+                    opt => opt.MapFrom(s => s.Employee != null ? s.Employee.FullName : null))
+               .ForMember(d => d.ReturnNotes,
+                    opt => opt.MapFrom(s => s.ReturnNotes));
 
             CreateMap<BranchSalesShortageDetailCreateUpdateDto, BranchSalesShortageDetail>();
 
@@ -89,6 +101,7 @@ namespace BranchERP.Application.Mapping
                     opt => opt.MapFrom(s => s.Supervisor != null ? s.Supervisor.FullName : null))
             .ForMember(d => d.GrandTotal, opt => opt.MapFrom(s => s.GrandTotal));
             CreateMap<BranchSalesDailyCreateUpdateDto, BranchSalesDaily>();
+         
 
             // ============================
             // BranchDailyTarget - Detail
@@ -175,7 +188,51 @@ namespace BranchERP.Application.Mapping
                 .ForMember(dest => dest.ReturnDate, opt => opt.Ignore())
                 .ForMember(dest => dest.ReturnType, opt => opt.MapFrom(src => (BranchReturnType)src.ReturnType));
 
+            CreateMap<CreateBranchControlIssueDto, BranchControlIssue>()
+               .ForMember(dest => dest.SentAt, opt => opt.Ignore())
+               .ForMember(dest => dest.SentByUser, opt => opt.Ignore())
+               .ForMember(dest => dest.Status, opt => opt.Ignore())
+               .ForMember(dest => dest.ResolvedAt, opt => opt.Ignore())
+               .ForMember(dest => dest.ResolutionType, opt => opt.Ignore())
+               .ForMember(dest => dest.ControlNotes, opt => opt.Ignore());
 
+            // From Entity → List DTO
+            CreateMap<BranchControlIssue, BranchControlIssueListDto>()
+                .ForMember(dest => dest.BranchName, opt => opt.MapFrom(src => src.Branch.BranchName))
+                .ForMember(d => d.BranchNumber, opt => opt.MapFrom(s => s.Branch.BranchNumber));
+            // From Update DTO → Entity
+            CreateMap<UpdateBranchControlIssueDto, BranchControlIssue>()
+                .ForMember(dest => dest.ResolvedAt, opt => opt.Ignore());
+
+            CreateMap<BranchControlIssue, ManagerBranchControlIssueListDto>()
+            .ForMember(dest => dest.BranchName, opt => opt.MapFrom(src => src.Branch.BranchName))
+            .ForMember(dest => dest.ControlNotes, opt => opt.MapFrom(src => src.ControlNotes))
+            .ForMember(dest => dest.ResolutionType, opt => opt.MapFrom(src => src.ResolutionType))
+            .ForMember(dest => dest.IsManagerApproved, opt => opt.MapFrom(src => src.IsManagerApproved))
+            .ForMember(dest => dest.ManagerSignature, opt => opt.MapFrom(src => src.ManagerSignature))
+            .ForMember(dest => dest.ManagerNotes, opt => opt.MapFrom(src => src.ManagerNotes))
+            .ForMember(d => d.BranchNumber, opt => opt.MapFrom(s => s.Branch.BranchNumber));
+
+            CreateMap<BranchControlIssue, AccountantBranchControlIssueListDto>()
+           .ForMember(d => d.BranchNumber, opt => opt.MapFrom(s => s.Branch.BranchNumber))
+           .ForMember(d => d.BranchName, opt => opt.MapFrom(s => s.Branch.BranchName));
+
+
+            CreateMap<BranchControlIssue, AccountantBranchControlIssueDetailsDto>()
+             .ForMember(d => d.BranchNumber, opt => opt.MapFrom(s => s.Branch.BranchNumber))
+          
+             .ForMember(d => d.ControlNotes, opt => opt.MapFrom(s => s.ControlNotes))
+             .ForMember(d => d.ResolutionType, opt => opt.MapFrom(s => s.ResolutionType));
+
+            // From Bank Transffered Request
+
+
+            CreateMap<BankTransferRequest, BankTransferRequestDto>()
+            .ForMember(d => d.BranchNumber,
+                o => o.MapFrom(s => s.Branch.BranchNumber))
+            .ForMember(d => d.BranchName,
+                o => o.MapFrom(s => s.Branch.BranchName));
+             CreateMap<CreateBankTransferRequestDto, BankTransferRequest>();
         }
     }
 }

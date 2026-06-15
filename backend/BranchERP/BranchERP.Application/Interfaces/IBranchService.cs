@@ -21,5 +21,6 @@ namespace BranchERP.Application.Interfaces
 
         Task<ApiResponse<IReadOnlyList<BranchDto>>> GetByCityIdAsync(int cityId);
 
+        Task<ApiResponse<IReadOnlyList<BranchDto>>> GetByCityIdsAsync(List<int> cityIds);
     }
 }

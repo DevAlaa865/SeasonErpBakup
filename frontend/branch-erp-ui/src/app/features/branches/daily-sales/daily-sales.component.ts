@@ -53,6 +53,7 @@ export class DailySalesComponent implements OnInit {
   credit = 0;
    cash=0;
    network=0;
+   branchActivityName: string = '';
   constructor(
     private fb: FormBuilder,
     private dailyService: BranchSalesDailyService,
@@ -98,10 +99,20 @@ preventEnter(event: Event) {
 
       totalInvoicesCount: [null, [Validators.required, Validators.min(0)]],
       totalQuantities: [null, [Validators.required, Validators.min(0)]],
-
+    dataEntryUserName: ['', [Validators.required, this.twoWordsValidator]],
       shortageDetails: this.fb.array([])
     });
   }
+
+  twoWordsValidator(control: AbstractControl) {
+  const value = (control.value || '').trim();
+
+  if (!value) return null; // الـ required هيشيلها
+
+  // لازم على الأقل كلمتين بينهم مسافة
+  const parts = value.split(/\s+/);
+  return parts.length >= 2 ? null : { twoWords: true };
+}
 
   initHeaderFromUser() {
    this.userInfo = this.auth.getUserInfo();
@@ -117,6 +128,7 @@ preventEnter(event: Event) {
       if (branch) {
         this.supervisorNameDisplay = branch.supervisorName || '';
         this.form.get('supervisorId')?.setValue(branch.supervisorId || null);
+         this.branchActivityName = branch.activityTypeName || '';
       }
 
       this.form.get('branchId')?.disable({ emitEvent: false });
@@ -371,7 +383,25 @@ recalculateShortageEffect() {
 
   let totalShortage = 0;
   this.shortageDetails.controls.forEach(row => {
-    const amount = Number(row.get('amount')?.value || 0);
+  const amount = Number(row.get('amount')?.value || 0);
+
+  const typeId = row.get('shortageTypeId')?.value;
+  const type = this.shortageTypes.find(t => t.id === typeId);
+  const shortageName = type?.name || type?.shortageName || '';
+
+  // 🔥 هل الفرع نشاطه ملابس؟
+  const isClothesBranch = this.branchActivityName.includes('ملابس');
+
+  // 🔥 هل نوع العجز "مرتجعات"؟
+  const isReturnOrReplacement =
+    shortageName.includes('مرتجع') ||
+    shortageName.includes('مرتجعات') 
+/*     shortageName.includes('استبدال');
+ */
+  // ✅ لو الفرع ملابس والعجز مرتجع → نتجاهل هذا الصف في حساب الفرق
+  if (isClothesBranch && isReturnOrReplacement) {
+    return; // لا نضيفه إلى totalShortage
+  }
     totalShortage -= amount;
   });
   diffRaw -= totalShortage;
@@ -383,6 +413,38 @@ recalculateShortageEffect() {
 
 
 save() {
+
+  // ⭐ التحقق من اسم مدخل البيانات
+const dataEntryName = this.form.get('dataEntryUserName')?.value?.trim() || '';
+
+if (!dataEntryName) {
+  Swal.fire({
+    toast: true,
+    position: 'top-end',
+    icon: 'warning',
+    title: 'من فضلك أدخل اسم مدخل البيانات',
+    showConfirmButton: false,
+    timer: 4000,
+    timerProgressBar: true
+  });
+  return;
+}
+
+// ⭐ لازم يكون اسمين على الأقل
+const parts = dataEntryName.split(/\s+/);
+if (parts.length < 2) {
+  Swal.fire({
+    toast: true,
+    position: 'top-end',
+    icon: 'warning',
+    title: 'يجب إدخال الاسم الأول واسم العائلة على الأقل',
+    showConfirmButton: false,
+    timer: 4000,
+    timerProgressBar: true
+  });
+  return;
+}
+
     const creditControl = this.form.get('creditAmount');
   if ( (creditControl?.value === null || creditControl?.value === '' || creditControl?.value === undefined)) {
 
@@ -587,7 +649,10 @@ private doSave() {
   this.isSaving = true;
 
   const payload = {
-    ...this.form.getRawValue()
+    ...this.form.getRawValue(),
+
+    // ⭐ إضافة اسم مدخل البيانات للباك إند
+    dataEntryUserName: this.form.value.dataEntryUserName
   };
 if (payload.shortageDetails && payload.shortageDetails.length > 0) {
   payload.shortageDetails = payload.shortageDetails.map((row: any) => ({

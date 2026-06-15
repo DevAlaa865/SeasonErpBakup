@@ -4,7 +4,7 @@
     {
         public string CountryName { get; set; } = string.Empty;
 
-        // المدن التابعة للبلد
-        public ICollection<City> Cities { get; set; } = new List<City>();
+        // المناطق التابعة للبلد
+        public ICollection<Region> Regions { get; set; } = new List<Region>();
     }
 }

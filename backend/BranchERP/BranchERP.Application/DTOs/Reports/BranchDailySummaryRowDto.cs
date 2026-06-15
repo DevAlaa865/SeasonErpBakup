@@ -4,6 +4,7 @@ public class BranchDailySummaryRowDto
 {
     public int BranchId { get; set; }
     public string BranchName { get; set; }
+    public int BranchNumber { get; set; }
 
     public decimal CashAmount { get; set; }
     public decimal NetworkAmount { get; set; }
