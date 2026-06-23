@@ -1,0 +1,15 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace BranchERP.Domain.Entities
+{
+    public class UserCity
+    {
+        public int Id { get; set; }
+        public string UserId { get; set; } = string.Empty;
+        public int CityId { get; set; }
+    }
+}

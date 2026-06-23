@@ -1,55 +1,127 @@
-﻿using BranchERP.Application.DTOs.BankTransferRequests;
+﻿using System.IdentityModel.Tokens.Jwt;
+using BranchERP.Application.DTOs.BankTransferRequests;
 using BranchERP.Application.Interfaces;
-using DocumentFormat.OpenXml.Spreadsheet;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-[ApiController]
-[Route("api/[controller]")]
-public class BankTransferRequestController : ControllerBase
+namespace BranchERP.Api.Controllers
 {
-    private readonly IBankTransferRequestService _service;
-
-    public BankTransferRequestController(
-        IBankTransferRequestService service)
+   
+    [ApiController]
+    [Route("api/[controller]")]
+    public class BankTransferRequestController : ControllerBase
     {
-        _service = service;
-    }
+        private readonly IBankTransferRequestService _service;
+        private readonly IWebHostEnvironment _env;
+        public BankTransferRequestController(IWebHostEnvironment env,
+            IBankTransferRequestService service)
+        {
+            _service = service;
+            _env = env;
+        }
 
-    [HttpPost]
-    public async Task<IActionResult> Create(
-        CreateBankTransferRequestDto dto)
-    {
-        var result = await _service.CreateAsync(dto);
+        private string CurrentUserName =>
+            User.FindFirst(JwtRegisteredClaimNames.UniqueName)?.Value
+            ?? User.Identity?.Name
+            ?? "Unknown";
 
-        return Ok(result);
-    }
+        /// <summary>
+        /// إنشاء طلب تحويل جديد
+        /// </summary>
+        [HttpPost]
+        public async Task<IActionResult> Create(
+            [FromBody] CreateBankTransferRequestDto dto)
+        {
+            var result = await _service.CreateAsync(
+                dto,
+                CurrentUserName);
 
-    [HttpGet("{id}")]
-    public async Task<IActionResult> GetById(int id)
-    {
-        var result = await _service.GetByIdAsync(id);
+            return Ok(result);
+        }
 
-        return Ok(result);
-    }
+        /// <summary>
+        /// عرض طلب برقم الـ ID
+        /// </summary>
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(int id)
+        {
+            var result = await _service.GetByIdAsync(id);
+            return Ok(result);
+        }
 
-    [HttpPost("search")]
-    public async Task<IActionResult> Search(
-        BankTransferRequestFilterDto filter)
-    {
-        var result = await _service.SearchAsync(filter);
+        /// <summary>
+        /// الطلبات المعلقة فقط
+        /// </summary>
+        [HttpGet("pending")]
+        public async Task<IActionResult> GetPending()
+        {
+            var result = await _service.GetPendingAsync();
+            return Ok(result);
+        }
 
-        return Ok(result);
-    }
+        /// <summary>
+        /// البحث فى الطلبات
+        /// </summary>
+        [HttpPost("search")]
+        public async Task<IActionResult> Search(
+            [FromBody] BankTransferRequestFilterDto filter)
+        {
+            var result = await _service.SearchAsync(filter);
+            return Ok(result);
+        }
 
-    [HttpPut("update-status")]
-    public async Task<IActionResult> UpdateStatus(
-        UpdateTransferStatusDto dto)
-    {
-        var userName = User.Identity?.Name ?? "System";
+        /// <summary>
+        /// تغيير حالة الطلب (تم التحويل / ملغى)
+        /// </summary>
+        [HttpPut("update-status")]
+        public async Task<IActionResult> UpdateStatus(
+            [FromBody] UpdateTransferStatusDto dto)
+        {
+            var result = await _service.UpdateStatusAsync(
+                dto,
+                CurrentUserName);
 
-        var result =
-            await _service.UpdateStatusAsync(dto, userName);
+            return Ok(result);
+        }
 
-        return Ok(result);
+        [HttpPost("upload-attachment/{requestId}")]
+        public async Task<IActionResult> UploadAttachment(int requestId, IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest("لم يتم اختيار ملف.");
+
+            // فولدر خاص بكل طلب
+            var folderPath = Path.Combine(
+                _env.WebRootPath,
+                "uploads",
+                "bank-transfer-requests",
+                requestId.ToString()
+            );
+
+            if (!Directory.Exists(folderPath))
+                Directory.CreateDirectory(folderPath);
+
+            var fileName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
+            var filePath = Path.Combine(folderPath, fileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            var relativePath = $"uploads/bank-transfer-requests/{requestId}/{fileName}";
+
+            return Ok(new { path = relativePath });
+        }
+
+
+        [HttpPut("update-attachment")]
+        public async Task<IActionResult> UpdateAttachment([FromBody] UpdateAttachmentDto dto)
+        {
+            await _service.UpdateAttachmentAsync(dto);
+            return Ok();
+        }
+
+
     }
 }

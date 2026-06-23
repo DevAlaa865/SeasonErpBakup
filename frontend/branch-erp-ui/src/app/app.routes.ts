@@ -78,6 +78,12 @@ export const routes: Routes = [
             import('./features/reports/sales-summary-report/filters/filters.component')
               .then(m => m.FiltersComponent)
         },
+        {
+            path: 'reports/branch-daily-details',
+            loadComponent: () =>
+              import('./features/reports/sales-summary-report/branch-daily-details/branch-daily-details.component')
+                .then(m => m.BranchDailyDetailsComponent)
+          },
           {
             path: 'reports/sales-summary-report-result',
             loadComponent: () =>
@@ -200,6 +206,20 @@ export const routes: Routes = [
               import('./features/admin/authorization/role-permissions/role-permissions.component')
                 .then(m => m.RolePermissionsComponent)
           },
+          {
+          path: 'bank-transfer-request/create',
+          loadComponent: () =>
+            import('./features/bank-transfer-requests/bank-transfer-request-form/bank-transfer-request-form.component')
+              .then(m => m.BankTransferRequestFormComponent)
+        },
+        {
+        path: 'bank-transfer-request/list',
+        loadComponent: () =>
+          import('./features/bank-transfer-requests/bank-transfer-request-list/bank-transfer-request-list.component')
+            .then(m => m.BankTransferRequestListComponent)
+      },
+     
+
           /////
      /*  {
       path: 'reports/branch-daily-summary',
@@ -522,7 +542,13 @@ export const routes: Routes = [
         ]
       }
     ]
+    
   },
-
+ {
+        path: 'bank-transfer-request/print/:id',
+        loadComponent: () =>
+          import('./features/bank-transfer-requests/bank-transfer-request-print/bank-transfer-request-print.component')
+            .then(m => m.BankTransferRequestPrintComponent)
+      },
   { path: '**', redirectTo: 'login' }
 ];

@@ -14,6 +14,7 @@ using BranchERP.Application.DTOs.EmployeePersonalAchievement;
 using BranchERP.Application.DTOs.EmployeePersonalTarget;
 using BranchERP.Application.DTOs.EmployeeShiftTarget;
 using BranchERP.Application.DTOs.Region;
+using BranchERP.Application.DTOs.Reports.SalesSummaryReport;
 using BranchERP.Application.DTOs.ShortageType;
 using BranchERP.Domain.Entities;
 using BranchERP.Domain.Entities.BranchERP.Domain.Entities;
@@ -225,14 +226,29 @@ namespace BranchERP.Application.Mapping
              .ForMember(d => d.ResolutionType, opt => opt.MapFrom(s => s.ResolutionType));
 
             // From Bank Transffered Request
-
-
             CreateMap<BankTransferRequest, BankTransferRequestDto>()
-            .ForMember(d => d.BranchNumber,
-                o => o.MapFrom(s => s.Branch.BranchNumber))
-            .ForMember(d => d.BranchName,
-                o => o.MapFrom(s => s.Branch.BranchName));
-             CreateMap<CreateBankTransferRequestDto, BankTransferRequest>();
+                .ForMember(d => d.BranchNumber,
+                    o => o.MapFrom(s => s.Branch.BranchNumber))
+                .ForMember(d => d.BranchName,
+                    o => o.MapFrom(s => s.Branch.BranchName))
+                .ForMember(d => d.AttachmentPath,
+                    o => o.MapFrom(s => s.AttachmentPath))
+                .ReverseMap();
+
+            CreateMap<CreateBankTransferRequestDto, BankTransferRequest>()
+           .ForMember(d => d.AttachmentPath, o => o.MapFrom(s => s.AttachmentPath));
+
+
+            // Daily DetailDto
+            CreateMap<BranchSalesDaily, BranchDailyDetailDto>()
+                .ForMember(d => d.SalesDate, opt => opt.MapFrom(s => s.SalesDate))
+                .ForMember(d => d.TotalSales, opt => opt.MapFrom(s => s.GrandTotal ?? 0m))
+                .ForMember(d => d.TotalReturns, opt => opt.Ignore()) // هنحسبها يدويًا في السيرفس
+                .ForMember(d => d.NetSales, opt => opt.Ignore())     // هنحسبها يدويًا في السيرفس
+                .ForMember(d => d.InvoiceCount, opt => opt.MapFrom(s => s.TotalInvoicesCount ?? 0))
+                .ForMember(d => d.QuantityCount, opt => opt.MapFrom(s => s.TotalQuantities ?? 0))
+                .ForMember(d => d.AvgInvoice, opt => opt.Ignore())   // هنحسبها يدويًا
+                .ForMember(d => d.AvgPieces, opt => opt.Ignore());   // هنحسبها يدويًا
         }
     }
 }

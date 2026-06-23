@@ -239,7 +239,59 @@ namespace BranchERP.Infrastructure.Services
 
                 row.Shortages = branchShortages;
             }
+            ////// دة كود جديد عشان نجيب باقى الفروع الى ملهاش يوميه او مدخلوش اليوميه
+            // 🔥 نجيب الفروع حسب نفس الفلاتر
+            var branchesQuery = _context.Branches.AsQueryable();
 
+            if (filter.CityIds != null && filter.CityIds.Any())
+                branchesQuery = branchesQuery.Where(b => filter.CityIds.Contains(b.CityId));
+
+            if (filter.ActivityTypeId.HasValue)
+                branchesQuery = branchesQuery.Where(b => b.ActivityTypeId == filter.ActivityTypeId);
+
+            if (filter.BranchType != "All")
+            {
+                var type = Enum.Parse<BranchType>(filter.BranchType);
+                branchesQuery = branchesQuery.Where(b => b.BranchType == type);
+            }
+
+            var allBranches = await branchesQuery
+                .Select(b => new { b.Id, b.BranchName, b.BranchNumber })
+                .ToListAsync();
+
+            // 🔥 IDs الفروع اللي ظهرت في التقرير
+            var existingBranchIds = data.Select(x => x.BranchId).ToHashSet();
+
+            // 🔥 نجيب الفروع اللي ماعندهاش يوميات
+            var missingBranches = allBranches
+                .Where(b => !existingBranchIds.Contains(b.Id))
+                .ToList();
+
+            // 🔥 نضيفها للتقرير بقيم صفر
+            foreach (var b in missingBranches)
+            {
+                data.Add(new BranchDailySummaryRowDto
+                {
+                    BranchId = b.Id,
+                    BranchNumber = b.BranchNumber,
+                    BranchName = b.BranchName,
+
+                    CashAmount = 0,
+                    NetworkAmount = 0,
+                    CreditAmount = 0,
+                    TotalSales = 0,
+                    GrandTotal = 0,
+                    Difference = 0,
+                    TotalShortageAmount = 0,
+
+                    Shortages = new List<BranchShortageSummaryDto>()
+                });
+            }
+
+            // 🔥 إعادة ترتيب النتيجة
+            data = data.OrderBy(x => x.BranchName).ToList();
+            ////////
+           
             return ApiResponse<IReadOnlyList<BranchDailySummaryRowDto>>.Ok(data);
         }
 
@@ -252,25 +304,35 @@ namespace BranchERP.Infrastructure.Services
         {
             var query = _context.BranchSalesShortageDetails
                 .Where(s => s.BranchSalesDaily.SalesDate >= filter.FromDate &&
-                            s.BranchSalesDaily.SalesDate <= filter.ToDate)
-                .Where(s => !filter.CityId.HasValue || s.BranchSalesDaily.Branch.CityId == filter.CityId.Value)
-                .Where(s => !filter.BranchId.HasValue || s.BranchSalesDaily.BranchId == filter.BranchId.Value)
-                .Where(s => !filter.ShortageTypeId.HasValue || s.ShortageTypeId == filter.ShortageTypeId.Value);
+                            s.BranchSalesDaily.SalesDate <= filter.ToDate);
 
-            // فلتر الحالة
+            // 🔥 Multi City Filter
+            if (filter.CityIds != null && filter.CityIds.Any())
+            {
+                query = query.Where(s => filter.CityIds.Contains(s.BranchSalesDaily.Branch.CityId));
+            }
+
+            // 🔥 Multi Branch Filter
+            if (filter.BranchIds != null && filter.BranchIds.Any())
+            {
+                query = query.Where(s => filter.BranchIds.Contains(s.BranchSalesDaily.BranchId));
+            }
+
+            // 🔥 Shortage Type Filter
+            query = query.Where(s =>
+                !filter.ShortageTypeId.HasValue ||
+                s.ShortageTypeId == filter.ShortageTypeId.Value
+            );
+
+            // 🔥 Status Filter (كما هو بدون تغيير)
             if (filter.Status == ReturnsDiscountsApprovalStatus.Approved)
             {
                 query = query.Where(s =>
-
-                    // مرتجعات + استبدال → اعتماد المرتجعات
                     (
                         (s.ShortageTypeId == 3 || s.ShortageTypeId == 6) &&
                         s.IsReturnApproved == true
                     )
-
                     ||
-
-                    // باقي الأنواع → اعتماد الخصومات
                     (
                         (s.ShortageTypeId != 3 && s.ShortageTypeId != 6) &&
                         s.IsDiscountApproved == true
@@ -280,16 +342,11 @@ namespace BranchERP.Infrastructure.Services
             else if (filter.Status == ReturnsDiscountsApprovalStatus.NotApproved)
             {
                 query = query.Where(s =>
-
-                    // مرتجعات + استبدال → اعتماد المرتجعات
                     (
                         (s.ShortageTypeId == 3 || s.ShortageTypeId == 6) &&
                         (!s.IsReturnApproved.HasValue || s.IsReturnApproved == false)
                     )
-
                     ||
-
-                    // باقي الأنواع → اعتماد الخصومات
                     (
                         (s.ShortageTypeId != 3 && s.ShortageTypeId != 6) &&
                         (!s.IsDiscountApproved.HasValue || s.IsDiscountApproved == false)
@@ -313,7 +370,6 @@ namespace BranchERP.Infrastructure.Services
 
             return result;
         }
-
         public async Task<List<BranchDailySummaryRowDto>> GetBranchDailySummaryAsync(BranchDailySummaryFilterDto filter)
         {
             var query = _context.BranchSalesDailies

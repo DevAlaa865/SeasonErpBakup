@@ -7,10 +7,12 @@ using Microsoft.EntityFrameworkCore;
 public class SalesSummaryReportService : ISalesSummaryReportService
 {
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IUserContextService _userContext;
 
-    public SalesSummaryReportService(IUnitOfWork unitOfWork)
+    public SalesSummaryReportService(IUnitOfWork unitOfWork, IUserContextService userContext)
     {
         _unitOfWork = unitOfWork;
+        _userContext = userContext;
     }
 
     public async Task<List<ReportResultDto>> GetReportAsync(ReportFilterDto filter)
@@ -18,16 +20,40 @@ public class SalesSummaryReportService : ISalesSummaryReportService
         var salesRepo = _unitOfWork.Repository<BranchSalesDaily>();
         var returnsRepo = _unitOfWork.Repository<BranchDailyReturn>();
 
-        // فلترة اليوم فقط بدون وقت
-        var from = filter.FromDate.Date; // 00:00:00
-        var to = filter.ToDate.Date.AddDays(1).AddTicks(-1); // 23:59:59
+        var from = filter.FromDate.Date;
+        var to = filter.ToDate.Date.AddDays(1).AddTicks(-1);
 
-        // جلب المبيعات
         var salesQuery = salesRepo.Query()
             .Include(s => s.Branch)
                 .ThenInclude(b => b.City)
-            .Where(s => s.SalesDate >= from &&
-                        s.SalesDate <= to);
+            .Where(s => s.SalesDate >= from && s.SalesDate <= to);
+
+        // ============================================
+        // 🔥 فلترة حسب نوع المستخدم من التوكن
+        // ============================================
+
+        // 1) مستخدم فرع → يشوف فرعه فقط
+        if (_userContext.UserType == "Branch")
+        {
+            salesQuery = salesQuery.Where(s => s.BranchId == _userContext.BranchId);
+        }
+
+        // 2) مدير منطقة → يشوف المدن اللي في التوكن فقط
+        if (_userContext.UserType == "RegionManager")
+        {
+            var cityIds = _userContext.CityIds;
+
+            if (cityIds != null && cityIds.Any())
+            {
+                salesQuery = salesQuery.Where(s => cityIds.Contains(s.Branch.CityId));
+            }
+        }
+
+        // 3) مستخدم مركزي → يشوف كل شيء (لا فلترة)
+
+        // ============================================
+        // 🔥 الفلاتر الأصلية (RegionId – CityId – BranchId)
+        // ============================================
 
         if (filter.RegionId.HasValue)
             salesQuery = salesQuery.Where(s => s.Branch.City.RegionId == filter.RegionId.Value);
@@ -37,6 +63,10 @@ public class SalesSummaryReportService : ISalesSummaryReportService
 
         if (filter.BranchId.HasValue)
             salesQuery = salesQuery.Where(s => s.BranchId == filter.BranchId.Value);
+
+        // ============================================
+        // 🔥 تنفيذ التقرير
+        // ============================================
 
         var salesList = await salesQuery.ToListAsync();
 
@@ -55,7 +85,6 @@ public class SalesSummaryReportService : ISalesSummaryReportService
             var quantityCount = branchSales.Sum(x => x.TotalQuantities ?? 0);
             var activityType = branch.ActivityTypeId.ToString();
 
-            // جلب المرتجعات (بدون DefaultIfEmpty لأن EF Core لا يترجمها)
             var returnsList = await returnsRepo.Query()
                 .Where(r => r.BranchId == branch.Id &&
                             r.ReturnDate >= from &&
@@ -69,7 +98,7 @@ public class SalesSummaryReportService : ISalesSummaryReportService
             result.Add(new ReportResultDto
             {
                 BranchId = branch.Id,
-                BranchNumber=branch.BranchNumber,
+                BranchNumber = branch.BranchNumber,
                 BranchName = branch.BranchName,
                 TotalSales = totalSales,
                 TotalReturns = totalReturns,

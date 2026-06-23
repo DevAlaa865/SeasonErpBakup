@@ -1,18 +1,17 @@
 ﻿using BranchERP.Application.DTOs.BankTransferRequests;
 using BranchERP.Application.DTOs.Common;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BranchERP.Application.Interfaces
 {
     public interface IBankTransferRequestService
     {
-        Task<ApiResponse<BankTransferRequestDto>> CreateAsync(CreateBankTransferRequestDto dto);
+        Task<ApiResponse<BankTransferRequestDto>> CreateAsync(
+            CreateBankTransferRequestDto dto,
+            string createdBy);
 
         Task<ApiResponse<BankTransferRequestDto>> GetByIdAsync(int id);
+
+        Task<ApiResponse<IReadOnlyList<BankTransferRequestDto>>> GetPendingAsync();
 
         Task<ApiResponse<IReadOnlyList<BankTransferRequestDto>>> SearchAsync(
             BankTransferRequestFilterDto filter);
@@ -20,5 +19,7 @@ namespace BranchERP.Application.Interfaces
         Task<ApiResponse<bool>> UpdateStatusAsync(
             UpdateTransferStatusDto dto,
             string processedBy);
+
+        Task UpdateAttachmentAsync(UpdateAttachmentDto dto);
     }
 }

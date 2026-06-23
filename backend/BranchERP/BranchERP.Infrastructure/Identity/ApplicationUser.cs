@@ -10,7 +10,7 @@ namespace BranchERP.Infrastructure.Identity
 
         public int? EmployeeId { get; set; }
         public Employee? Employee { get; set; }
-        // 🔥 مدير مدينة
+        // مدير المنطقه // ← ده هيبقى RegionId فعليًا 
         public int? CityId { get; set; }
 
         // 🔥 نوع المستخدم

@@ -1,17 +1,19 @@
 ﻿using BranchERP.Application.DTOs.BranchDailyReturnDto;
 
-namespace Application.Interfaces
+namespace BranchERP.Application.Interfaces
 {
     public interface IBranchDailyReturnService
     {
         Task ImportFromExcelAsync(Stream fileStream, string fileName);
 
+        // ============================================================
+        // GET RETURNS (FINAL - MULTI FILTER ONLY)
+        // ============================================================
         Task<List<BranchDailyReturnDto>> GetReturnsAsync(
             DateTime? fromDate,
             DateTime? toDate,
-            int? branchId,
-            int? branchNumber,
-            int? cityId,
+            List<int>? cityIds,
+            List<int>? branchIds,
             int? returnType
         );
 
@@ -19,21 +21,26 @@ namespace Application.Interfaces
 
         Task<bool> UpdateAsync(int id, BranchDailyReturnUpdateDto dto, string userName);
 
+        // ============================================================
+        // EXPORT
+        // ============================================================
         Task<byte[]> ExportToExcelAsync(
-                DateTime? fromDate,
-                DateTime? toDate,
-                int? branchId,
-                int? branchNumber,
-                int? cityId,
-                int? returnType
-            );
+            DateTime? fromDate,
+            DateTime? toDate,
+            List<int>? cityIds,
+            List<int>? branchIds,
+            int? returnType
+        );
+
+        // ============================================================
+        // CHART
+        // ============================================================
         Task<List<BranchDailyReturnChartDto>> GetChartDataAsync(
-                DateTime? fromDate,
-                DateTime? toDate,
-                int? branchId,
-                int? branchNumber,
-                int? cityId,
-                int? returnType
-            );
+            DateTime? fromDate,
+            DateTime? toDate,
+            List<int>? cityIds,
+            List<int>? branchIds,
+            int? returnType
+        );
     }
 }

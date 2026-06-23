@@ -7,13 +7,17 @@ namespace BranchERP.Application.DTOs.Reports
         public DateTime FromDate { get; set; }
         public DateTime ToDate { get; set; }
 
-        public int? CityId { get; set; }   // أو CityId لو ده اللي عندك
-        public int? BranchId { get; set; }
+        // 🔥 بدل CityId واحدة
+        public List<int>? CityIds { get; set; }
 
-        // ✅ الحالة (الكل / معتمد / غير معتمد)
-        public ReturnsDiscountsApprovalStatus Status { get; set; } = ReturnsDiscountsApprovalStatus.All;
+        // 🔥 Multi Branches بدل BranchId
+        public List<int>? BranchIds { get; set; }
 
-        // ✅ نوع العجز (مرتجعات، خصم على فاتورة، خصم موظف، مكافأة…)
+        // ✅ الحالة
+        public ReturnsDiscountsApprovalStatus Status { get; set; }
+            = ReturnsDiscountsApprovalStatus.All;
+
+        // ✅ نوع العجز
         public int? ShortageTypeId { get; set; }
     }
 }

@@ -49,7 +49,11 @@ namespace BranchERP.Domain.Entities
         // توقيع مقدم الطلب
         public string ApplicantSignature { get; set; } = string.Empty;
 
+
+        public string? TransferReferenceNumber { get; set; }
         // ملاحظات
         public string? Notes { get; set; }
+
+        public string? AttachmentPath { get; set; }
     }
 }

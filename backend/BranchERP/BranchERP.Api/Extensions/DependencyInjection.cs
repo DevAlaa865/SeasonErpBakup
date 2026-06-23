@@ -1,11 +1,12 @@
-﻿using Application.Interfaces;
+﻿
 using BranchERP.Application.Interfaces;
 using BranchERP.Application.Interfaces.Reports.DailyReports;
 using BranchERP.Application.Interfaces.Reports.SalesSummaryReports;
+using BranchERP.Application.Services;
 using BranchERP.Infrastructure.Data;
 using BranchERP.Infrastructure.Services;
 using BranchERP.Infrastructure.Services.Reports.DailyReports;
-using Infrastructure.Services;
+using BranchERP.Infrastructure.Services.Reports.SalesSummaryReport;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace BranchERP.Api.Extensions
@@ -36,8 +37,12 @@ namespace BranchERP.Api.Extensions
             services.AddScoped<IEmployeePersonalAchievementService, EmployeePersonalAchievementService>();
             services.AddScoped<ICommissionRuleService, CommissionRuleService>();
             services.AddScoped<IBranchDailyReturnService, BranchDailyReturnService>();
+            services.AddScoped<IBranchDailyDetailsService,BranchDailyDetailsService>();
+            services.AddHttpContextAccessor();
+            services.AddScoped<IUserContextService, UserContextService>();
             services.AddScoped<IBranchDailyDifferenceReportService, BranchDailyDifferenceReportService>();
             services.AddScoped<IBranchControlIssueService, BranchControlIssueService>();
+            services.AddScoped<IBankTransferRequestService,BankTransferRequestService>();
             services.AddScoped<ISalesSummaryReportService, SalesSummaryReportService>();
             services.AddScoped<TokenService>();
             // هنا بعدين هنضيف:

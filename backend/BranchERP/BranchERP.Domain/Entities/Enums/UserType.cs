@@ -9,7 +9,7 @@ namespace BranchERP.Domain.Entities.Enums
     public enum UserType
     {
         Branch = 1,       // مستخدم فرع
-        CityManager = 2,  // مدير مدينة
+        RegionManager = 2,  // مدير مدينة
         Central = 3       // مستخدم مركزي
     }
 }

@@ -157,6 +157,92 @@ namespace BranchERP.Infrastructure.Migrations
                     b.ToTable("ActivityTypes");
                 });
 
+            modelBuilder.Entity("BranchERP.Domain.Entities.BankTransferRequest", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ApplicantSignature")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("AttachmentPath")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("BankName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("BranchId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CustomerMobile")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("CustomerName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Iban")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<decimal>("InvoiceAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("InvoiceNumber")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ProcessedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("RequestDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("RequestNumber")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("TransferAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("TransferDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("TransferReferenceNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("TransferType")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BranchId");
+
+                    b.ToTable("BankTransferRequests", (string)null);
+                });
+
             modelBuilder.Entity("BranchERP.Domain.Entities.BranchControlIssue", b =>
                 {
                     b.Property<int>("Id")
@@ -1072,6 +1158,17 @@ namespace BranchERP.Infrastructure.Migrations
                 });
 
             modelBuilder.Entity("BranchDailyTargetHeader", b =>
+                {
+                    b.HasOne("Branch", "Branch")
+                        .WithMany()
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Branch");
+                });
+
+            modelBuilder.Entity("BranchERP.Domain.Entities.BankTransferRequest", b =>
                 {
                     b.HasOne("Branch", "Branch")
                         .WithMany()

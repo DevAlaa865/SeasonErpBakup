@@ -24,6 +24,7 @@ namespace BranchERP.Application.DTOs.BankTransferRequests
 
         public string BankName { get; set; } = string.Empty;
 
+        public string? AttachmentPath { get; set; }
         public string Iban { get; set; } = string.Empty;
 
         public string ApplicantSignature { get; set; } = string.Empty;

@@ -43,31 +43,29 @@ namespace BranchERP.Infrastructure.Services
                     cityName = branch.City.CityName;
                 }
             }
-            else if (user.CityId.HasValue)
-            {
-                var city = await _context.Cities
-                    .FirstOrDefaultAsync(c => c.Id == user.CityId.Value);
 
-                if (city != null)
-                    cityName = city.CityName;
-            }
+            // 🔥 جلب المدن الخاصة بالمستخدم
+            var assignedCities = await _context.UserCities
+                .Where(x => x.UserId == user.Id)
+                .Select(x => x.CityId)
+                .ToListAsync();
 
             var claims = new List<Claim>
-    {
-        new Claim(JwtRegisteredClaimNames.Sub, user.Id),
-        new Claim(JwtRegisteredClaimNames.UniqueName, user.UserName ?? ""),
+            {
+                new Claim(JwtRegisteredClaimNames.Sub, user.Id),
+                new Claim(JwtRegisteredClaimNames.UniqueName, user.UserName ?? ""),
 
-        new Claim("userType", user.UserType.ToString()),
+                new Claim("userType", user.UserType.ToString()),
 
-        new Claim("branchId", user.BranchId?.ToString() ?? "0",ClaimValueTypes.Integer),
-        new Claim("branchName", branchName),
+                new Claim("branchId", user.BranchId?.ToString() ?? "0", ClaimValueTypes.Integer),
+                new Claim("branchName", branchName),
 
-        new Claim("cityId", user.CityId?.ToString() ?? ""),
-        new Claim("cityName", cityName),
+                // 🔥 قائمة المدن
+                new Claim("cityIds", string.Join(",", assignedCities)),
 
-        new Claim("employeeId", user.EmployeeId?.ToString() ?? ""),
-        new Claim("departmentId", user.DepartmentId?.ToString() ?? "")
-    };
+                new Claim("employeeId", user.EmployeeId?.ToString() ?? ""),
+                new Claim("departmentId", user.DepartmentId?.ToString() ?? "")
+            };
 
             foreach (var role in roles)
                 claims.Add(new Claim(ClaimTypes.Role, role));

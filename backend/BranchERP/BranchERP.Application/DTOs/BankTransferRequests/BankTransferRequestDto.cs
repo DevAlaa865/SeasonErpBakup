@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BranchERP.Domain.Entities.Enums;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -24,7 +25,7 @@ namespace BranchERP.Application.DTOs.BankTransferRequests
 
         public decimal InvoiceAmount { get; set; }
 
-        public int TransferType { get; set; }
+        public TransferType TransferType { get; set; }
 
         public decimal TransferAmount { get; set; }
 
@@ -36,16 +37,17 @@ namespace BranchERP.Application.DTOs.BankTransferRequests
 
         public string Iban { get; set; } = string.Empty;
 
-        public int Status { get; set; }
+        public TransferRequestStatus Status { get; set; }
 
         public DateTime? TransferDate { get; set; }
 
         public string CreatedBy { get; set; } = string.Empty;
 
         public string? ProcessedBy { get; set; }
-
+        public string? AttachmentPath { get; set; }
         public string ApplicantSignature { get; set; } = string.Empty;
 
+        public string? TransferReferenceNumber { get; set; }
         public string? Notes { get; set; }
     }
 }

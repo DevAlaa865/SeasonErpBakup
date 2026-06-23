@@ -11,5 +11,6 @@ namespace BranchERP.Application.DTOs.BankTransferRequests
         public int RequestId { get; set; }
 
         public int Status { get; set; }
+        public string? TransferReferenceNumber { get; set; }
     }
 }

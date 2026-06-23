@@ -1,6 +1,6 @@
-﻿using Application.Interfaces;
+﻿
 using BranchERP.Application.DTOs.BranchDailyReturnDto;
-using Infrastructure.Services;
+using BranchERP.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
@@ -16,6 +16,9 @@ namespace API.Controllers
             _returnService = returnService;
         }
 
+        // ============================================================
+        // 📌 UPLOAD EXCEL
+        // ============================================================
         [HttpPost("upload-excel")]
         public async Task<IActionResult> UploadExcel([FromForm] IFormFile file)
         {
@@ -31,33 +34,32 @@ namespace API.Controllers
             return Ok(new { message = "تم استيراد ملف المرتجعات بنجاح" });
         }
 
+        // ============================================================
+        // 📌 GET RETURNS (NEW FILTERS)
+        // ============================================================
         [HttpGet]
         public async Task<IActionResult> GetReturns(
-       [FromQuery] DateTime? fromDate,
-       [FromQuery] DateTime? toDate,
-       [FromQuery] int? branchId,
-       [FromQuery] int? branchNumber,
-       [FromQuery] int? cityId,
-       [FromQuery] int? returnType
-   )
+            [FromQuery] DateTime? fromDate,
+            [FromQuery] DateTime? toDate,
+            [FromQuery] List<int>? cityIds,
+            [FromQuery] List<int>? branchIds,
+            [FromQuery] int? returnType
+        )
         {
             var result = await _returnService.GetReturnsAsync(
                 fromDate,
                 toDate,
-                branchId,
-                branchNumber,
-                cityId,
+                cityIds,
+                branchIds,
                 returnType
             );
 
-            return Ok(new
-            {
-                Success = true,
-                Data = result
-            });
+            return Ok(new { Success = true, Data = result });
         }
 
-
+        // ============================================================
+        // 📌 GET BY ID
+        // ============================================================
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -68,11 +70,12 @@ namespace API.Controllers
             return Ok(new { Success = true, Data = result });
         }
 
-
+        // ============================================================
+        // 📌 UPDATE
+        // ============================================================
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Update(int id, [FromBody] BranchDailyReturnUpdateDto dto)
         {
-            // لو عندك UserName من الـ JWT أو الـ Context هاته هنا
             var userName = User?.Identity?.Name ?? "system";
 
             var success = await _returnService.UpdateAsync(id, dto, userName);
@@ -83,23 +86,23 @@ namespace API.Controllers
             return Ok(new { Success = true, Message = "تم تعديل المرتجع بنجاح" });
         }
 
-
+        // ============================================================
+        // 📌 EXPORT EXCEL (NEW FILTERS)
+        // ============================================================
         [HttpGet("export")]
         public async Task<IActionResult> ExportToExcel(
             [FromQuery] DateTime? fromDate,
             [FromQuery] DateTime? toDate,
-            [FromQuery] int? branchId,
-            [FromQuery] int? branchNumber,
-            [FromQuery] int? cityId,
+            [FromQuery] List<int>? cityIds,
+            [FromQuery] List<int>? branchIds,
             [FromQuery] int? returnType
-           )
+        )
         {
             var fileBytes = await _returnService.ExportToExcelAsync(
                 fromDate,
                 toDate,
-                branchId,
-                branchNumber,
-                cityId,
+                cityIds,
+                branchIds,
                 returnType
             );
 
@@ -112,27 +115,27 @@ namespace API.Controllers
             );
         }
 
+        // ============================================================
+        // 📌 CHART DATA (NEW FILTERS)
+        // ============================================================
         [HttpGet("chart")]
         public async Task<IActionResult> GetChartData(
-                [FromQuery] DateTime? fromDate,
-                [FromQuery] DateTime? toDate,
-                [FromQuery] int? branchId,
-                [FromQuery] int? branchNumber,
-                [FromQuery] int? cityId,
-                [FromQuery] int? returnType
-            )
+            [FromQuery] DateTime? fromDate,
+            [FromQuery] DateTime? toDate,
+            [FromQuery] List<int>? cityIds,
+            [FromQuery] List<int>? branchIds,
+            [FromQuery] int? returnType
+        )
         {
             var result = await _returnService.GetChartDataAsync(
                 fromDate,
                 toDate,
-                branchId,
-                branchNumber,
-                cityId,
+                cityIds,
+                branchIds,
                 returnType
             );
 
             return Ok(new { success = true, data = result });
         }
-
     }
 }

@@ -18,94 +18,102 @@ namespace BranchERP.Infrastructure.Services.Reports.DailyReports
             _context = context;
         }
 
-        public async Task<List<BranchDailyDifferenceReportDto>> GetBranchDailyDifferenceReportAsync(BranchDailyDifferenceReportFilterDto filter)
+        public async Task<List<BranchDailyDifferenceReportDto>> GetBranchDailyDifferenceReportAsync(
+            BranchDailyDifferenceReportFilterDto filter)
         {
-            var query = _context.BranchSalesDailies
-                .Include(x => x.Branch)
-                .AsQueryable();
+            // 1) الفروع أولاً (عشان نضمن ظهور الكل)
+            var branchesQuery = _context.Branches.AsQueryable();
 
-            // فلترة المدينة
-            // فلترة المدن
             if (filter.CityIds != null && filter.CityIds.Any())
-            {
-                query = query.Where(x => filter.CityIds.Contains(x.Branch.CityId));
-            }
+                branchesQuery = branchesQuery.Where(x => filter.CityIds.Contains(x.CityId));
 
-            // فلترة الفروع
             if (filter.BranchIds != null && filter.BranchIds.Any())
-                query = query.Where(x => filter.BranchIds.Contains(x.BranchId));
+                branchesQuery = branchesQuery.Where(x => filter.BranchIds.Contains(x.Id));
 
-            // فلترة رقم الفرع
             if (filter.BranchNumber.HasValue)
-                query = query.Where(x => x.Branch.BranchNumber == filter.BranchNumber.Value);
+                branchesQuery = branchesQuery.Where(x => x.BranchNumber == filter.BranchNumber.Value);
 
-            // استبعاد الفرق = صفر فقط في حالة تقرير الفرق
-            if (filter.IsNetworkReport != true)
+            var branches = await branchesQuery.ToListAsync();
+
+            // 2) تحديد فترة التاريخ
+            var fromDate = filter.FromDate?.Date;
+            var toDate = filter.ToDate?.Date;
+
+            var dates = new List<DateTime>();
+
+            if (fromDate.HasValue && toDate.HasValue)
             {
-                query = query.Where(x => x.Difference != 0);
+                for (var d = fromDate.Value; d <= toDate.Value; d = d.AddDays(1))
+                    dates.Add(d);
+            }
+            else
+            {
+                // لو مفيش فلترة تاريخ، خد اليوم الحالي فقط (أو عدل حسب احتياجك)
+                dates.Add(DateTime.Today);
             }
 
-            // 🔥 فلترة الفرق الجديدة
+            // 3) تحميل اليوميات مرة واحدة
+            var salesQuery = _context.BranchSalesDailies.AsQueryable();
 
-            // 1) عجز مسموح به: من -35 إلى -1
-            // 🔥 فلترة الفرق الجديدة
-            if (filter.IsNetworkReport != true)
-            {
-                // 1) عجز مسموح به: من -35 إلى -1
-                if (filter.IsAllowedShortage == true)
-                    query = query.Where(x => x.Difference < 0 && x.Difference >= -35);
+            if (fromDate.HasValue)
+                salesQuery = salesQuery.Where(x => x.SalesDate >= fromDate);
 
-                // 2) عجز كبير: أقل من -35
-                if (filter.IsBigShortage == true)
-                    query = query.Where(x => x.Difference < -35);
+            if (toDate.HasValue)
+                salesQuery = salesQuery.Where(x => x.SalesDate <= toDate);
 
-                // زيادة صغيرة (1 إلى 35)
-                if (filter.IsSmallIncrease == true)
-                    query = query.Where(x => x.Difference > 0 && x.Difference <= 35);
+            var sales = await salesQuery.ToListAsync();
 
-                // زيادة كبيرة (> 35)
-                if (filter.IsBigIncrease == true)
-                    query = query.Where(x => x.Difference > 35);
-            }
-
-            // فلترة التاريخ
-            if (filter.FromDate.HasValue)
-                query = query.Where(x => x.SalesDate >= filter.FromDate.Value.Date);
-
-            if (filter.ToDate.HasValue)
-                query = query.Where(x => x.SalesDate <= filter.ToDate.Value.Date);
-
-            var data = await query.ToListAsync();
-
-            // تجهيز النتيجة
-            var result = data.Select(x => new BranchDailyDifferenceReportDto
-            {
-                BranchId = x.BranchId,
-                BranchNumber = x.Branch.BranchNumber,
-                BranchName = x.Branch.BranchName,
-                SalesDate = x.SalesDate,
-                Difference = x.Difference ?? 0,
-                SalesDailyId = x.Id,
-                NetworkAmount = x.NetworkAmount ?? 0,
-                
-            }).ToList();
-
-            // لو تقرير شبكة فقط
-            if (filter.IsNetworkReport == true)
-            {
-                result = result.Select(x => new BranchDailyDifferenceReportDto
+            // 4) LEFT JOIN (فرع × أيام)
+            var result = (
+                from b in branches
+                from d in dates
+                join s in sales
+                    on new { b.Id, Date = d.Date }
+                    equals new { Id = s.BranchId, Date = s.SalesDate.Date }
+                    into gj
+                from s in gj.DefaultIfEmpty()
+                select new BranchDailyDifferenceReportDto
                 {
-                    BranchId = x.BranchId,
-                    BranchNumber = x.BranchNumber,
-                    BranchName = x.BranchName,
-                    SalesDate = x.SalesDate,
-                    NetworkAmount = x.NetworkAmount
-                }).ToList();
+                    BranchId = b.Id,
+                    BranchNumber = b.BranchNumber,
+                    BranchName = b.BranchName,
+                    SalesDate = d,
+
+                    Difference = filter.IsNetworkReport == true
+                        ? (s?.Difference ?? 0)
+                        : (s?.Difference ?? 0),
+
+                    NetworkAmount = s?.NetworkAmount ?? 0,
+                    SalesDailyId = s?.Id ?? 0
+                }
+            ).ToList();
+
+            // 5) الفلاتر بتاعة الفرق (بعد ما ضمنّا وجود الصفوف)
+            if (filter.IsNetworkReport != true)
+            {
+                if (filter.IsAllowedShortage == true)
+                    result = result.Where(x => x.Difference < 0 && x.Difference >= -35).ToList();
+
+                if (filter.IsBigShortage == true)
+                    result = result.Where(x => x.Difference < -35).ToList();
+
+                if (filter.IsSmallIncrease == true)
+                    result = result.Where(x => x.Difference > 0 && x.Difference <= 35).ToList();
+
+                if (filter.IsBigIncrease == true)
+                    result = result.Where(x => x.Difference > 35).ToList();
+
+                if (filter.IsAllowedShortage != true &&
+                    filter.IsBigShortage != true &&
+                    filter.IsSmallIncrease != true &&
+                    filter.IsBigIncrease != true)
+                {
+                    result = result.Where(x => x.Difference != 0).ToList();
+                }
             }
 
             return result;
         }
-
         public async Task<List<AccountsReturnsDiscountsReportRowDto>> GetAccountsReturnsDiscountsReportAsync(
             AccountsReturnsDiscountsReportFilterDto filter)
         {

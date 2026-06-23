@@ -1,9 +1,12 @@
 ﻿using BranchERP.Application.DTOs.Auth;
 using BranchERP.Application.DTOs.Common;
 using BranchERP.Application.Interfaces;
+using BranchERP.Domain.Entities;
 using BranchERP.Domain.Entities.Enums;
+using BranchERP.Infrastructure.Data;
 using BranchERP.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace BranchERP.Infrastructure.Services
 {
@@ -12,15 +15,18 @@ namespace BranchERP.Infrastructure.Services
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly TokenService _tokenService;
+        private readonly AppDbContext _context;
 
         public AuthService(
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
-            TokenService tokenService)
+            TokenService tokenService,
+            AppDbContext context)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _tokenService = tokenService;
+            _context = context;
         }
 
         public async Task<ApiResponse<object>> LoginAsync(LoginDto model)
@@ -55,19 +61,28 @@ namespace BranchERP.Infrastructure.Services
             if (existingUser != null)
                 return ApiResponse<string>.Fail("Username already exists");
 
+            // 🔥 مستخدم فرع
             if (model.UserType == UserType.Branch && model.BranchId == null)
                 return ApiResponse<string>.Fail("BranchId is required for Branch users");
 
-            if (model.UserType == UserType.CityManager && model.CityId == null)
-                return ApiResponse<string>.Fail("CityId is required for CityManager users");
+            // 🔥 مدير منطقة (لازم يختار مدن)
+            if (model.UserType == UserType.RegionManager &&
+                (model.CityIds == null || !model.CityIds.Any()))
+            {
+                return ApiResponse<string>.Fail("At least one city is required for RegionManager users");
+            }
 
             var user = new ApplicationUser
             {
                 UserName = model.UserName,
                 Email = model.Email,
                 DisplayName = model.DisplayName,
+
                 BranchId = model.UserType == UserType.Branch ? model.BranchId : null,
-                CityId = model.UserType == UserType.CityManager ? model.CityId : null,
+
+                // ❗ CityId مش هنستخدمه لمدير المنطقة
+                CityId = null,
+
                 UserType = model.UserType,
                 DepartmentId = model.DepartmentId,
                 EmailConfirmed = true
@@ -78,6 +93,21 @@ namespace BranchERP.Infrastructure.Services
             {
                 var errorMessage = string.Join(" | ", result.Errors.Select(e => e.Description));
                 return ApiResponse<string>.Fail(errorMessage);
+            }
+
+            // 🔥 حفظ المدن في جدول UserCities
+            if (model.UserType == UserType.RegionManager)
+            {
+                foreach (var cityId in model.CityIds!)
+                {
+                    _context.UserCities.Add(new UserCity
+                    {
+                        UserId = user.Id,
+                        CityId = cityId
+                    });
+                }
+
+                await _context.SaveChangesAsync();
             }
 
             if (!string.IsNullOrWhiteSpace(model.RoleName))

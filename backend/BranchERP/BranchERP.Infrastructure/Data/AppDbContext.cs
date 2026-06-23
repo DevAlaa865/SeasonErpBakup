@@ -45,6 +45,7 @@ namespace BranchERP.Infrastructure.Data
 
         public DbSet<BranchControlIssue> BranchControlIssues { get; set; }
         public DbSet<BankTransferRequest> BankTransferRequests { get; set; }
+        public DbSet<UserCity> UserCities { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -305,7 +306,7 @@ namespace BranchERP.Infrastructure.Data
 
             // BankTransferRequest
             modelBuilder.Entity<BankTransferRequest>()
-           .ToTable("BankTransferRequests");
+        .ToTable("BankTransferRequests");
 
             modelBuilder.Entity<BankTransferRequest>()
                 .HasKey(x => x.Id);
@@ -341,14 +342,6 @@ namespace BranchERP.Infrastructure.Data
                 .IsRequired();
 
             modelBuilder.Entity<BankTransferRequest>()
-                .Property(x => x.ApplicantSignature)
-                .HasColumnType("nvarchar(max)");
-
-            modelBuilder.Entity<BankTransferRequest>()
-                .Property(x => x.Notes)
-                .HasMaxLength(1000);
-
-            modelBuilder.Entity<BankTransferRequest>()
                 .Property(x => x.InvoiceAmount)
                 .HasColumnType("decimal(18,2)");
 
@@ -361,6 +354,26 @@ namespace BranchERP.Infrastructure.Data
                 .WithMany()
                 .HasForeignKey(x => x.BranchId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<UserCity>(entity =>
+            {
+                entity.ToTable("UserCities");
+
+                entity.HasKey(x => x.Id);
+
+                // علاقة اختيارية مع ApplicationUser
+                entity.HasOne<ApplicationUser>()
+                      .WithMany()
+                      .HasForeignKey(x => x.UserId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                // علاقة اختيارية مع City
+                entity.HasOne<City>()
+                      .WithMany()
+                      .HasForeignKey(x => x.CityId)
+                      .OnDelete(DeleteBehavior.Restrict);
+            });
+
         }
     }
 }

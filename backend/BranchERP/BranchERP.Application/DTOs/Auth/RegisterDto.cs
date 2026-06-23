@@ -13,9 +13,7 @@ namespace BranchERP.Application.DTOs.Auth
         public string ConfirmPassword { get; set; } = string.Empty;
 
         public string? RoleName { get; set; }
-        // مدير مدينة
-        public int? CityId { get; set; }
-
+        public List<int>? CityIds { get; set; }
         // نوع المستخدم
         public UserType UserType { get; set; } = UserType.Branch;
         public int? BranchId { get; set; }
