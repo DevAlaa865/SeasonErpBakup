@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BranchERP.Domain.Entities.Enums;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,16 +7,17 @@ using System.Threading.Tasks;
 
 namespace BranchERP.Domain.Entities
 {
-    public class ExpenseType
+    public class ExpenseType : BaseEntity
     {
-        public int Id { get; set; }
-
         public string? Name { get; set; }
         public bool IsActive { get; set; }
 
-        public string Description { get; set; }   // اختياري
+        public string? Description { get; set; }
 
-        // Navigation
-        public ICollection<ExpenseVoucherLine> Lines { get; set; } = new List<ExpenseVoucherLine>();
+        // 🔥 تصنيف البند
+        public ExpenseCategory Category { get; set; }
+
+        //public ICollection<ExpenseVoucherLine> Lines { get; set; }
+        //    = new List<ExpenseVoucherLine>();
     }
 }

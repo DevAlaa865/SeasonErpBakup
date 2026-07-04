@@ -16,11 +16,13 @@ namespace BranchERP.Application.DTOs.ExpenseVouchers.CashBox
 
         public decimal Amount { get; set; }
 
-        public string Type { get; set; } = string.Empty;        // Expense / Transfer / BranchDeposit ...
+        public string Type { get; set; } = string.Empty;        // Expense / Transfer / BranchDeposit / AdminFunding ...
 
         public DateTime TransactionDate { get; set; }
 
         public string? Description { get; set; }
+
+        public string? ReferenceNumber { get; set; }
 
         public int? ExpenseVoucherId { get; set; }
         public string? ExpenseVoucherNumber { get; set; }
@@ -30,5 +32,8 @@ namespace BranchERP.Application.DTOs.ExpenseVouchers.CashBox
 
         public int? PettyHolderId { get; set; }
         public string? PettyHolderName { get; set; }
+
+        public string? CreatedByUserName { get; set; }
     }
+
 }

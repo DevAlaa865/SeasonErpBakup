@@ -16,15 +16,18 @@ namespace BranchERP.Application.DTOs.ExpenseVouchers.Users
         public string UserName { get; set; } = string.Empty;
         public string PhoneNumber { get; set; } = string.Empty;
 
-        // من Entity
-        public int CityId { get; set; }
-        public string CityName { get; set; } = string.Empty;
+        // 🔥 المدن المرتبطة بمسؤول الإيداع (Many-to-Many)
+        public List<int> CityIds { get; set; } = new();
+        public List<string> CityNames { get; set; } = new();
 
+        // المنطقة
         public int? RegionId { get; set; }
         public string? RegionName { get; set; }
 
+        // حالة التفعيل
         public bool IsActive { get; set; }
 
+        // الصناديق المرتبطة
         public List<CashBoxDto> CashBoxes { get; set; }
             = new List<CashBoxDto>();
     }

@@ -110,7 +110,7 @@ namespace BranchERP.Infrastructure.Services
                 CashBoxId = voucher.CashBoxId,
                 Amount = totalAmount,
                 Direction = TransactionDirection.OUT,
-                Type = TransactionType.Expense,
+                TransactionType = TransactionType.Expense,
                 TransactionDate = DateTime.Now,
                 ExpenseVoucherId = voucher.Id,
                 Description = $"Expense Voucher #{voucher.Id}"
@@ -182,5 +182,25 @@ namespace BranchERP.Infrastructure.Services
 
             return true;
         }
+
+        public async Task<List<ExpenseVoucherDto>> GetMyVouchersAsync(string userId)
+        {
+            var petty = await _unitOfWork.Repository<PettyHolder>()
+                .GetAllAsync(x => x.UserId == userId);
+
+            if (!petty.Any())
+                return new List<ExpenseVoucherDto>();
+
+            var cashBoxIds = petty
+                .SelectMany(x => x.CashBoxes)
+                .Select(x => x.Id)
+                .ToList();
+
+            var vouchers = await _unitOfWork.Repository<ExpenseVoucher>()
+                .GetAllAsync(x => cashBoxIds.Contains(x.CashBoxId));
+
+            return _mapper.Map<List<ExpenseVoucherDto>>(vouchers);
+        }
+
     }
 }

@@ -1,0 +1,52 @@
+<div class="card">
+  <div class="card-header d-flex justify-content-between">
+    <h4>أنواع المصروفات</h4>
+    <button class="btn btn-primary" (click)="goCreate()">إضافة نوع</button>
+  </div>
+
+  <div class="card-body">
+
+    <table class="table table-bordered table-striped">
+      <thead>
+        <tr>
+          <th>الاسم</th>
+          <th>الوصف</th>
+          <th>التصنيف</th>
+          <th>الحالة</th>
+          <th>إجراءات</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let item of items">
+          <td>{{ item.name }}</td>
+          <td>{{ item.description }}</td>
+          <td>{{ item.category }}</td>
+
+          <td>
+            <span class="badge" [ngClass]="item.isActive ? 'bg-success' : 'bg-danger'">
+              {{ item.isActive ? 'نشط' : 'متوقف' }}
+            </span>
+          </td>
+
+          <td>
+            <button class="btn btn-sm btn-warning" (click)="goEdit(item.id)">تعديل</button>
+
+            <button *ngIf="item.isActive"
+                    class="btn btn-sm btn-danger ms-2"
+                    (click)="deactivate(item.id)">
+              إيقاف
+            </button>
+
+            <button *ngIf="!item.isActive"
+                    class="btn btn-sm btn-success ms-2"
+                    (click)="activate(item.id)">
+              تفعيل
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+  </div>
+</div>

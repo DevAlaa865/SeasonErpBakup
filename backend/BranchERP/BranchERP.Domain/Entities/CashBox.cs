@@ -18,8 +18,8 @@ namespace BranchERP.Domain.Entities
 
         public bool IsActive { get; set; }
 
-        public DepositCollector DepositCollector { get; set; }
-        public PettyHolder PettyHolder { get; set; }
+        public DepositCollector? DepositCollector { get; set; }
+        public PettyHolder? PettyHolder { get; set; }
 
         public ICollection<CashBoxTransaction> Transactions { get; set; } = new List<CashBoxTransaction>();
     }

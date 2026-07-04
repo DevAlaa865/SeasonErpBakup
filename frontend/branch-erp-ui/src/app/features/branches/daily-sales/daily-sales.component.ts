@@ -429,6 +429,7 @@ if (!dataEntryName) {
   });
   return;
 }
+// ⭐ للايمكن الحفظ بسبب تعدى العجز المسموح به
 
 // ⭐ لازم يكون اسمين على الأقل
 const parts = dataEntryName.split(/\s+/);

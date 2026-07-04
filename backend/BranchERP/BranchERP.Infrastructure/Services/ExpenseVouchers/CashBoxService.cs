@@ -3,6 +3,8 @@ using BranchERP.Application.DTOs.ExpenseVouchers.CashBox;
 using BranchERP.Application.Interfaces;
 using BranchERP.Application.Interfaces.ExpenseVouchers;
 using BranchERP.Domain.Entities;
+using BranchERP.Infrastructure.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace BranchERP.Infrastructure.Services
@@ -11,13 +13,33 @@ namespace BranchERP.Infrastructure.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public CashBoxService(IUnitOfWork unitOfWork, IMapper mapper)
+        public CashBoxService(
+            IUnitOfWork unitOfWork,
+            IMapper mapper,
+            UserManager<ApplicationUser> userManager)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _userManager = userManager;
         }
+        private async Task<CashBoxDto> BuildDto(CashBox entity)
+        {
+            var dto = _mapper.Map<CashBoxDto>(entity);
 
+            // اسم مسؤول الإيداع من AspNetUsers
+            if (entity.DepositCollector?.UserId != null)
+            {
+                var user = await _userManager.FindByIdAsync(entity.DepositCollector.UserId);
+                dto.DepositCollectorName = user?.UserName ?? "";
+            }
+
+            // اسم أمين العهدة
+            dto.PettyHolderName = entity.PettyHolder?.Name ?? "";
+
+            return dto;
+        }
         // ============================================================
         // 1) Create CashBox
         // ============================================================
@@ -71,11 +93,14 @@ namespace BranchERP.Infrastructure.Services
                 include: q => q
                     .Include(x => x.DepositCollector)
                     .Include(x => x.PettyHolder)
+                    .Include(x => x.Transactions)
             );
 
-            return _mapper.Map<CashBoxDto>(entity);
-        }
+            if (entity == null)
+                return null;
 
+            return await BuildDto(entity);
+        }
         // ============================================================
         // 4) Get All CashBoxes
         // ============================================================
@@ -88,11 +113,18 @@ namespace BranchERP.Infrastructure.Services
                 include: q => q
                     .Include(x => x.DepositCollector)
                     .Include(x => x.PettyHolder)
+                    .Include(x => x.Transactions)
             );
 
-            return _mapper.Map<List<CashBoxDto>>(data);
-        }
+            var list = new List<CashBoxDto>();
 
+            foreach (var entity in data)
+            {
+                list.Add(await BuildDto(entity));
+            }
+
+            return list;
+        }
         // ============================================================
         // 5) Get CashBox Balance
         // ============================================================
@@ -118,9 +150,9 @@ namespace BranchERP.Infrastructure.Services
             var data = await repo.GetAllAsync(
                 filter: x => x.CashBoxId == cashBoxId,
                 include: q => q
-                    .Include(x => x.ExpenseVoucher)
-                    .Include(x => x.Branch)
-                    .Include(x => x.PettyHolder)
+                    .Include<CashBoxTransaction, object>(x => x.ExpenseVoucher)
+                    .Include<CashBoxTransaction, object>(x => x.Branch)
+                    .Include<CashBoxTransaction, object>(x => x.PettyHolder)
             );
 
             return _mapper.Map<List<CashBoxTransactionDto>>(data);
@@ -169,6 +201,52 @@ namespace BranchERP.Infrastructure.Services
         public Task<bool> AddManualTransactionAsync(int cashBoxId, decimal amount, string direction, string type, string? description = null)
         {
             throw new NotImplementedException();
+        }
+
+        // ============================================================
+        // 8) Get CashBoxes For User
+        // ============================================================
+        public async Task<List<CashBoxDto>> GetCashBoxesForUserAsync(string userId)
+        {
+            var boxes = new List<CashBox>();
+
+            var petty = await _unitOfWork.Repository<PettyHolder>()
+                .GetAllAsync(x => x.UserId == userId);
+
+            if (petty.Any())
+                boxes.AddRange(petty.SelectMany(x => x.CashBoxes).ToList());
+
+            var deposit = await _unitOfWork.Repository<DepositCollector>()
+                .GetAllAsync(x => x.UserId == userId);
+
+            if (deposit.Any())
+                boxes.AddRange(deposit.SelectMany(x => x.CashBoxes).ToList());
+
+            var userCities = await _unitOfWork.Repository<UserCity>()
+                .GetAllAsync(x => x.UserId == userId);
+
+            if (userCities.Any())
+            {
+                var cityIds = userCities.Select(x => x.CityId).ToList();
+
+                var branches = await _unitOfWork.Repository<Branch>()
+                    .GetAllAsync(x => cityIds.Contains(x.CityId));
+
+                var branchIds = branches.Select(x => x.Id).ToList();
+
+                var branchBoxes = await _unitOfWork.Repository<CashBox>()
+                    .GetAllAsync(x => branchIds.Contains(x.Id));
+
+                boxes.AddRange(branchBoxes);
+            }
+
+            if (!petty.Any() && !deposit.Any() && !userCities.Any())
+            {
+                var allBoxes = await _unitOfWork.Repository<CashBox>().GetAllAsync();
+                boxes = allBoxes.ToList();
+            }
+
+            return _mapper.Map<List<CashBoxDto>>(boxes.Distinct().ToList());
         }
     }
 }

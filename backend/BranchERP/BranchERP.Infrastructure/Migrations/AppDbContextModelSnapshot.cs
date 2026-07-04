@@ -542,6 +542,96 @@ namespace BranchERP.Infrastructure.Migrations
                     b.ToTable("BranchSalesShortageDetails");
                 });
 
+            modelBuilder.Entity("BranchERP.Domain.Entities.CashBox", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("CurrentBalance")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int?>("DepositCollectorId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("OpeningBalance")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int?>("PettyHolderId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DepositCollectorId");
+
+                    b.HasIndex("PettyHolderId");
+
+                    b.ToTable("CashBoxes");
+                });
+
+            modelBuilder.Entity("BranchERP.Domain.Entities.CashBoxTransaction", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int?>("BranchId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CashBoxId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Direction")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ExpenseVoucherId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("PettyHolderId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ReferenceNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("TransactionDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("TransactionType")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BranchId");
+
+                    b.HasIndex("CashBoxId");
+
+                    b.HasIndex("ExpenseVoucherId");
+
+                    b.HasIndex("PettyHolderId");
+
+                    b.ToTable("CashBoxTransactions");
+                });
+
             modelBuilder.Entity("BranchERP.Domain.Entities.City", b =>
                 {
                     b.Property<int>("Id")
@@ -630,6 +720,55 @@ namespace BranchERP.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Departments");
+                });
+
+            modelBuilder.Entity("BranchERP.Domain.Entities.DepositCollector", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("RegionId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RegionId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("DepositCollectors");
+                });
+
+            modelBuilder.Entity("BranchERP.Domain.Entities.DepositCollectorCity", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CityId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("DepositCollectorId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CityId");
+
+                    b.HasIndex("DepositCollectorId");
+
+                    b.ToTable("DepositCollectorCity");
                 });
 
             modelBuilder.Entity("BranchERP.Domain.Entities.EmployeePersonalAchievement", b =>
@@ -752,6 +891,128 @@ namespace BranchERP.Infrastructure.Migrations
                     b.ToTable("EmployeeShiftTargetHeaders");
                 });
 
+            modelBuilder.Entity("BranchERP.Domain.Entities.ExpenseType", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Category")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ExpenseTypes");
+                });
+
+            modelBuilder.Entity("BranchERP.Domain.Entities.ExpenseVoucher", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ApprovedByUserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ApprovedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("AttachmentUrl")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("CashBoxId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CreatedByUserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("VoucherDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("VoucherNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CashBoxId");
+
+                    b.ToTable("ExpenseVouchers");
+                });
+
+            modelBuilder.Entity("BranchERP.Domain.Entities.ExpenseVoucherLine", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("AttachmentUrl")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("BranchId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ExpenseTypeId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ExpenseVoucherId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("LineNumber")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("PettyHolderId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BranchId");
+
+                    b.HasIndex("ExpenseTypeId");
+
+                    b.HasIndex("ExpenseVoucherId");
+
+                    b.HasIndex("PettyHolderId");
+
+                    b.ToTable("ExpenseVoucherLines");
+                });
+
             modelBuilder.Entity("BranchERP.Domain.Entities.Permission", b =>
                 {
                     b.Property<int>("Id")
@@ -771,6 +1032,63 @@ namespace BranchERP.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Permissions");
+                });
+
+            modelBuilder.Entity("BranchERP.Domain.Entities.PettyHolder", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PhoneNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("RegionId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RegionId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("PettyHolders");
+                });
+
+            modelBuilder.Entity("BranchERP.Domain.Entities.PettyHolderCity", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CityId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PettyHolderId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CityId");
+
+                    b.HasIndex("PettyHolderId");
+
+                    b.ToTable("PettyHolderCity");
                 });
 
             modelBuilder.Entity("BranchERP.Domain.Entities.Region", b =>
@@ -828,6 +1146,57 @@ namespace BranchERP.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("ShortageTypes");
+                });
+
+            modelBuilder.Entity("BranchERP.Domain.Entities.UserCashCity", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CityId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RoleType")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CityId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserCashCities");
+                });
+
+            modelBuilder.Entity("BranchERP.Domain.Entities.UserCity", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CityId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CityId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserCities", (string)null);
                 });
 
             modelBuilder.Entity("BranchERP.Domain.Entities.UserDepartment", b =>
@@ -1264,6 +1633,55 @@ namespace BranchERP.Infrastructure.Migrations
                     b.Navigation("ShortageType");
                 });
 
+            modelBuilder.Entity("BranchERP.Domain.Entities.CashBox", b =>
+                {
+                    b.HasOne("BranchERP.Domain.Entities.DepositCollector", "DepositCollector")
+                        .WithMany("CashBoxes")
+                        .HasForeignKey("DepositCollectorId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("BranchERP.Domain.Entities.PettyHolder", "PettyHolder")
+                        .WithMany("CashBoxes")
+                        .HasForeignKey("PettyHolderId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("DepositCollector");
+
+                    b.Navigation("PettyHolder");
+                });
+
+            modelBuilder.Entity("BranchERP.Domain.Entities.CashBoxTransaction", b =>
+                {
+                    b.HasOne("Branch", "Branch")
+                        .WithMany()
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("BranchERP.Domain.Entities.CashBox", "CashBox")
+                        .WithMany("Transactions")
+                        .HasForeignKey("CashBoxId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BranchERP.Domain.Entities.ExpenseVoucher", "ExpenseVoucher")
+                        .WithMany()
+                        .HasForeignKey("ExpenseVoucherId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("BranchERP.Domain.Entities.PettyHolder", "PettyHolder")
+                        .WithMany()
+                        .HasForeignKey("PettyHolderId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Branch");
+
+                    b.Navigation("CashBox");
+
+                    b.Navigation("ExpenseVoucher");
+
+                    b.Navigation("PettyHolder");
+                });
+
             modelBuilder.Entity("BranchERP.Domain.Entities.City", b =>
                 {
                     b.HasOne("BranchERP.Domain.Entities.Region", "Region")
@@ -1273,6 +1691,40 @@ namespace BranchERP.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Region");
+                });
+
+            modelBuilder.Entity("BranchERP.Domain.Entities.DepositCollector", b =>
+                {
+                    b.HasOne("BranchERP.Domain.Entities.Region", "Region")
+                        .WithMany()
+                        .HasForeignKey("RegionId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("BranchERP.Infrastructure.Identity.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Region");
+                });
+
+            modelBuilder.Entity("BranchERP.Domain.Entities.DepositCollectorCity", b =>
+                {
+                    b.HasOne("BranchERP.Domain.Entities.City", "City")
+                        .WithMany()
+                        .HasForeignKey("CityId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("BranchERP.Domain.Entities.DepositCollector", "DepositCollector")
+                        .WithMany("DepositCollectorCities")
+                        .HasForeignKey("DepositCollectorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("City");
+
+                    b.Navigation("DepositCollector");
                 });
 
             modelBuilder.Entity("BranchERP.Domain.Entities.EmployeePersonalAchievement", b =>
@@ -1316,6 +1768,84 @@ namespace BranchERP.Infrastructure.Migrations
                     b.Navigation("Branch");
                 });
 
+            modelBuilder.Entity("BranchERP.Domain.Entities.ExpenseVoucher", b =>
+                {
+                    b.HasOne("BranchERP.Domain.Entities.CashBox", "CashBox")
+                        .WithMany()
+                        .HasForeignKey("CashBoxId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CashBox");
+                });
+
+            modelBuilder.Entity("BranchERP.Domain.Entities.ExpenseVoucherLine", b =>
+                {
+                    b.HasOne("Branch", "Branch")
+                        .WithMany()
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("BranchERP.Domain.Entities.ExpenseType", "ExpenseType")
+                        .WithMany()
+                        .HasForeignKey("ExpenseTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("BranchERP.Domain.Entities.ExpenseVoucher", "ExpenseVoucher")
+                        .WithMany("Lines")
+                        .HasForeignKey("ExpenseVoucherId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BranchERP.Domain.Entities.PettyHolder", "PettyHolder")
+                        .WithMany()
+                        .HasForeignKey("PettyHolderId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Branch");
+
+                    b.Navigation("ExpenseType");
+
+                    b.Navigation("ExpenseVoucher");
+
+                    b.Navigation("PettyHolder");
+                });
+
+            modelBuilder.Entity("BranchERP.Domain.Entities.PettyHolder", b =>
+                {
+                    b.HasOne("BranchERP.Domain.Entities.Region", "Region")
+                        .WithMany()
+                        .HasForeignKey("RegionId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("BranchERP.Infrastructure.Identity.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Region");
+                });
+
+            modelBuilder.Entity("BranchERP.Domain.Entities.PettyHolderCity", b =>
+                {
+                    b.HasOne("BranchERP.Domain.Entities.City", "City")
+                        .WithMany()
+                        .HasForeignKey("CityId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("BranchERP.Domain.Entities.PettyHolder", "PettyHolder")
+                        .WithMany("PettyHolderCities")
+                        .HasForeignKey("PettyHolderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("City");
+
+                    b.Navigation("PettyHolder");
+                });
+
             modelBuilder.Entity("BranchERP.Domain.Entities.Region", b =>
                 {
                     b.HasOne("BranchERP.Domain.Entities.Country", "Country")
@@ -1342,6 +1872,38 @@ namespace BranchERP.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Permission");
+                });
+
+            modelBuilder.Entity("BranchERP.Domain.Entities.UserCashCity", b =>
+                {
+                    b.HasOne("BranchERP.Domain.Entities.City", "City")
+                        .WithMany()
+                        .HasForeignKey("CityId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("BranchERP.Infrastructure.Identity.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("City");
+                });
+
+            modelBuilder.Entity("BranchERP.Domain.Entities.UserCity", b =>
+                {
+                    b.HasOne("BranchERP.Domain.Entities.City", null)
+                        .WithMany()
+                        .HasForeignKey("CityId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("BranchERP.Infrastructure.Identity.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("BranchERP.Domain.Entities.UserDepartment", b =>
@@ -1431,9 +1993,21 @@ namespace BranchERP.Infrastructure.Migrations
                     b.Navigation("ShortageDetails");
                 });
 
+            modelBuilder.Entity("BranchERP.Domain.Entities.CashBox", b =>
+                {
+                    b.Navigation("Transactions");
+                });
+
             modelBuilder.Entity("BranchERP.Domain.Entities.Country", b =>
                 {
                     b.Navigation("Regions");
+                });
+
+            modelBuilder.Entity("BranchERP.Domain.Entities.DepositCollector", b =>
+                {
+                    b.Navigation("CashBoxes");
+
+                    b.Navigation("DepositCollectorCities");
                 });
 
             modelBuilder.Entity("BranchERP.Domain.Entities.EmployeePersonalTarget", b =>
@@ -1444,6 +2018,18 @@ namespace BranchERP.Infrastructure.Migrations
             modelBuilder.Entity("BranchERP.Domain.Entities.EmployeeShiftTargetHeader", b =>
                 {
                     b.Navigation("PersonalTargets");
+                });
+
+            modelBuilder.Entity("BranchERP.Domain.Entities.ExpenseVoucher", b =>
+                {
+                    b.Navigation("Lines");
+                });
+
+            modelBuilder.Entity("BranchERP.Domain.Entities.PettyHolder", b =>
+                {
+                    b.Navigation("CashBoxes");
+
+                    b.Navigation("PettyHolderCities");
                 });
 
             modelBuilder.Entity("BranchERP.Domain.Entities.Region", b =>

@@ -170,9 +170,9 @@ namespace BranchERP.Api
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "API V1");
                 c.RoutePrefix = "docs";
             });
-
-            app.UseMiddleware<ExceptionHandlingMiddleware>();
             app.UseCors("AllowAll");
+            app.UseMiddleware<ExceptionHandlingMiddleware>();
+  
             app.UseAuthentication();
             app.UseAuthorization();
           

@@ -12,7 +12,9 @@ namespace BranchERP.Application.DTOs.ExpenseVouchers.Users
 
         public string PhoneNumber { get; set; } = string.Empty;
 
-        public int CityId { get; set; }
+        // 🔥 صاحب العهدة مسؤول عن أكتر من مدينة
+        public List<int> CityIds { get; set; } = new();
+
         public int? RegionId { get; set; }
     }
 }

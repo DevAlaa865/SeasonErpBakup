@@ -78,6 +78,7 @@ export const routes: Routes = [
             import('./features/reports/sales-summary-report/filters/filters.component')
               .then(m => m.FiltersComponent)
         },
+       
         {
             path: 'reports/branch-daily-details',
             loadComponent: () =>
@@ -141,11 +142,73 @@ export const routes: Routes = [
               .then(m => m.AccountControlIssuesReportComponent )
         }, 
         {
+          path: 'cash-management',
+          loadComponent: () =>
+            import('./pages/cash-management/cash-management.component')
+              .then(m => m.CashManagementComponent)
+        },
+         {
+            path: 'cash-management/cash/cash-box',
+            loadComponent: () =>
+              import('./features/cash/cash-box.component')
+                .then(m => m.CashBoxComponent)
+          },
+         {
+          path: 'cash-management/deposit-collectors',
+          loadComponent: () =>
+            import('./features/deposit-collectors/deposit-collectors.component')
+              .then(m => m.DepositCollectorsComponent)
+        },
+        {
+            path: 'cash-management/petty-holder',
+            loadComponent: () =>
+              import('./features/petty-holder/petty-holder.component')
+                .then(m => m.PettyHolderComponent)
+          },
+          {
+          path: 'cash-management/manual-posting',
+          loadComponent: () =>
+            import('./features/manual-posting/manual-posting.component')
+              .then(m => m.ManualPostingComponent)
+        },
+        {
+          path: 'cash-management/posting-history',
+          loadComponent: () =>
+            import('./features/posting-history/posting-history.component')
+              .then(m => m.PostingHistoryComponent)
+        },
+        {
+          path: 'cash-management/posting-details/:id',
+          loadComponent: () =>
+            import('./features/posting-details/posting-details.component')
+              .then(m => m.PostingDetailsComponent)
+        },
+         {
+        path: 'cash-management/expenses/expense-type',
+        loadComponent: () =>
+          import('./features/expense-type-list/expense-type-list.component')
+            .then(m => m.ExpenseTypeListComponent)
+      },
+        {
+          path: 'cash-management/expenses/expense-type/create',
+          loadComponent: () =>
+            import('./features/expense-type-form/expense-type-form.component')
+              .then(m => m.ExpenseTypeFormComponent)
+        },
+        {
+          path: 'cash-management/expenses/expense-type/edit/:id',
+          loadComponent: () =>
+            import('./features/expense-type-form/expense-type-form.component')
+              .then(m => m.ExpenseTypeFormComponent)
+        },
+                {
         path: 'general-management',
         loadComponent: () =>
           import('./pages/general-management/general-management.component')
             .then(m => m.GeneralManagementComponent)
         },
+      
+
 
         {
             path: 'general-management/users',
@@ -153,6 +216,20 @@ export const routes: Routes = [
               import('./features/admin/users/list/users-list/users-list.component')
                 .then(m => m.UsersListComponent)
          },
+          {
+          path: 'general-management/cash-posting',
+          loadComponent: () =>
+            import('./features/cash-posting/cash-posting.component')
+              .then(m => m.PostingComponent)
+        },
+        
+          {
+          path: 'general-management/admin/users/user-cash-city',
+          loadComponent: () =>
+            import('./features/admin/users/user-cash-city.component')
+              .then(m => m.UserCashCityComponent)
+         },
+         
          {
             path: 'general-management/countries',
             canActivate: [permissionGuard('Countries.View')],

@@ -15,8 +15,9 @@ namespace BranchERP.Application.DTOs.ExpenseVouchers.Users
 
         public string PhoneNumber { get; set; } = string.Empty;
 
-        public int CityId { get; set; }
-        public string CityName { get; set; } = string.Empty;
+        // 🔥 المدن المرتبطة بصاحب العهدة (Many-to-Many)
+        public List<int> CityIds { get; set; } = new();
+        public List<string> CityNames { get; set; } = new();
 
         public int? RegionId { get; set; }
         public string? RegionName { get; set; }
@@ -26,5 +27,4 @@ namespace BranchERP.Application.DTOs.ExpenseVouchers.Users
         public List<CashBoxDto> CashBoxes { get; set; }
             = new List<CashBoxDto>();
     }
-
 }

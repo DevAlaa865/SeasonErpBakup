@@ -12,6 +12,10 @@ namespace BranchERP.Domain.Entities.Enums
         PettyCashAssignment = 2,  // صرف عهدة
         BranchDeposit = 3,        // استلام نقدية فرع
         Transfer = 4,             // تحويل بين صناديق
-        Adjustment = 5            // تسوية
+        Adjustment = 5,           // تسوية
+        AdminFunding = 6,         // تمويل من الإدارة
+        AdminDeduction = 7 ,       // خصم من الإدارة
+        DailyCash = 8             // 🔥 ترحيل يوميات الفروع
     }
+
 }

@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("BranchERP.Application")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+00e14cf203fd0584ac23c8468aedf03e10ba7f43")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d39b1816d0dd0ce8dee78db23376ede56a048528")]
 [assembly: System.Reflection.AssemblyProductAttribute("BranchERP.Application")]
 [assembly: System.Reflection.AssemblyTitleAttribute("BranchERP.Application")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

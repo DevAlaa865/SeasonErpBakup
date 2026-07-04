@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BranchERP.Domain.Entities.Enums;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,5 +16,8 @@ namespace BranchERP.Application.DTOs.ExpenseVouchers.Lookups
         public bool IsActive { get; set; }
 
         public string? Description { get; set; }
+
+        // 🔥 التصنيف
+        public ExpenseCategory Category { get; set; }
     }
 }

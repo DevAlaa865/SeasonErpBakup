@@ -1,10 +1,12 @@
 ﻿
 using BranchERP.Application.Interfaces;
+using BranchERP.Application.Interfaces.ExpenseVouchers;
 using BranchERP.Application.Interfaces.Reports.DailyReports;
 using BranchERP.Application.Interfaces.Reports.SalesSummaryReports;
 using BranchERP.Application.Services;
 using BranchERP.Infrastructure.Data;
 using BranchERP.Infrastructure.Services;
+using BranchERP.Infrastructure.Services.ExpenseVouchers;
 using BranchERP.Infrastructure.Services.Reports.DailyReports;
 using BranchERP.Infrastructure.Services.Reports.SalesSummaryReport;
 using Microsoft.Extensions.DependencyInjection;
@@ -44,6 +46,17 @@ namespace BranchERP.Api.Extensions
             services.AddScoped<IBranchControlIssueService, BranchControlIssueService>();
             services.AddScoped<IBankTransferRequestService,BankTransferRequestService>();
             services.AddScoped<ISalesSummaryReportService, SalesSummaryReportService>();
+            //// Expense Service
+            services.AddScoped<IExpenseTypeService, ExpenseTypeService>();
+            services.AddScoped<ICashBoxService, CashBoxService>();
+            services.AddScoped<IDepositCollectorService, DepositCollectorService>();
+            services.AddScoped<IPettyHolderService, PettyHolderService>();
+            services.AddScoped<IExpenseVoucherService, ExpenseVoucherService>();
+            services.AddScoped<ICashBoxTransactionService, CashBoxTransactionService>();
+            services.AddScoped<IDepositCashService, DepositCashService>();
+            services.AddScoped<IUserCashCityService, UserCashCityService>();
+            services.AddScoped<ICashPostingService, CashPostingService>();
+            services.AddScoped<IUserService, UserService>();
             services.AddScoped<TokenService>();
             // هنا بعدين هنضيف:
             // - Services

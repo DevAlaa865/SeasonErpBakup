@@ -46,6 +46,15 @@ namespace BranchERP.Infrastructure.Data
         public DbSet<BranchControlIssue> BranchControlIssues { get; set; }
         public DbSet<BankTransferRequest> BankTransferRequests { get; set; }
         public DbSet<UserCity> UserCities { get; set; }
+        public DbSet<ExpenseType> ExpenseTypes { get; set; }
+        public DbSet<ExpenseVoucher> ExpenseVouchers { get; set; }
+        public DbSet<ExpenseVoucherLine> ExpenseVoucherLines { get; set; }
+
+        public DbSet<CashBox> CashBoxes { get; set; }
+        public DbSet<CashBoxTransaction> CashBoxTransactions { get; set; }
+        public DbSet<UserCashCity> UserCashCities { get; set; }
+        public DbSet<DepositCollector> DepositCollectors { get; set; }
+        public DbSet<PettyHolder> PettyHolders { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -372,7 +381,159 @@ namespace BranchERP.Infrastructure.Data
                       .WithMany()
                       .HasForeignKey(x => x.CityId)
                       .OnDelete(DeleteBehavior.Restrict);
+
             });
+
+            //// Expenses
+            ///CashBox ↔ DepositCollector / PettyHolder
+            modelBuilder.Entity<CashBox>()
+                .HasOne(cb => cb.DepositCollector)
+                .WithMany(dc => dc.CashBoxes)
+                .HasForeignKey(cb => cb.DepositCollectorId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<CashBox>()
+                .HasOne(cb => cb.PettyHolder)
+                .WithMany(ph => ph.CashBoxes)
+                .HasForeignKey(cb => cb.PettyHolderId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            //CashBoxTransaction Relations
+            modelBuilder.Entity<CashBoxTransaction>()
+                .HasOne(t => t.CashBox)
+                .WithMany(cb => cb.Transactions)
+                .HasForeignKey(t => t.CashBoxId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<CashBoxTransaction>()
+                .HasOne(t => t.ExpenseVoucher)
+                .WithMany()
+                .HasForeignKey(t => t.ExpenseVoucherId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<CashBoxTransaction>()
+                .HasOne(t => t.Branch)
+                .WithMany()
+                .HasForeignKey(t => t.BranchId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<CashBoxTransaction>()
+                .HasOne(t => t.PettyHolder)
+                .WithMany()
+                .HasForeignKey(t => t.PettyHolderId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            //ExpenseVoucher Relations
+            modelBuilder.Entity<ExpenseVoucher>()
+            .HasOne(v => v.CashBox)
+            .WithMany()
+            .HasForeignKey(v => v.CashBoxId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+            //ExpenseVoucherLine Relations
+
+            modelBuilder.Entity<ExpenseVoucherLine>()
+                .HasOne(l => l.ExpenseVoucher)
+                .WithMany(v => v.Lines)
+                .HasForeignKey(l => l.ExpenseVoucherId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ExpenseVoucherLine>()
+             .HasOne(l => l.ExpenseType)
+             .WithMany()   // لا يوجد Lines داخل ExpenseType
+             .HasForeignKey(l => l.ExpenseTypeId)
+             .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ExpenseVoucherLine>()
+                .HasOne(l => l.Branch)
+                .WithMany()
+                .HasForeignKey(l => l.BranchId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ExpenseVoucherLine>()
+                .HasOne(l => l.PettyHolder)
+                .WithMany()
+                .HasForeignKey(l => l.PettyHolderId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
+            // DepositCollector Relations
+            // ===============================
+            // 🔥 علاقة DepositCollector ↔ Region (كما هي)
+            modelBuilder.Entity<DepositCollector>()
+                .HasOne(dc => dc.Region)
+                .WithMany()
+                .HasForeignKey(dc => dc.RegionId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // 🔥 ربط DepositCollector بـ ApplicationUser (كما هي)
+            modelBuilder.Entity<DepositCollector>()
+                .HasOne<ApplicationUser>()
+                .WithMany()
+                .HasForeignKey(dc => dc.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // 🔥 علاقة Many-to-Many بين DepositCollector ↔ City
+            modelBuilder.Entity<DepositCollectorCity>()
+                .HasOne(dcc => dcc.DepositCollector)
+                .WithMany(dc => dc.DepositCollectorCities)
+                .HasForeignKey(dcc => dcc.DepositCollectorId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<DepositCollectorCity>()
+                .HasOne(dcc => dcc.City)
+                .WithMany()
+                .HasForeignKey(dcc => dcc.CityId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
+
+            // ===============================
+            // ===============================
+            // PettyHolder Relations
+            // ===============================
+
+            // علاقة مع Region
+            modelBuilder.Entity<PettyHolder>()
+                .HasOne(ph => ph.Region)
+                .WithMany()
+                .HasForeignKey(ph => ph.RegionId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // ربط PettyHolder بـ ApplicationUser
+            modelBuilder.Entity<PettyHolder>()
+                .HasOne<ApplicationUser>()
+                .WithMany()
+                .HasForeignKey(ph => ph.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // علاقة Many-to-Many مع City عن طريق PettyHolderCity
+            modelBuilder.Entity<PettyHolderCity>()
+                .HasOne(pc => pc.PettyHolder)
+                .WithMany(ph => ph.PettyHolderCities)
+                .HasForeignKey(pc => pc.PettyHolderId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<PettyHolderCity>()
+                .HasOne(pc => pc.City)
+                .WithMany()
+                .HasForeignKey(pc => pc.CityId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
+
+            //UserCashCity
+            modelBuilder.Entity<UserCashCity>()
+                .HasOne<ApplicationUser>()
+                .WithMany()
+                .HasForeignKey(x => x.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<UserCashCity>()
+               .HasOne(x => x.City)
+               .WithMany()
+               .HasForeignKey(x => x.CityId)
+               .OnDelete(DeleteBehavior.Restrict);
 
         }
     }

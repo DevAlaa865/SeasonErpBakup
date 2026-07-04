@@ -1,0 +1,39 @@
+<div class="card">
+  <div class="card-header">
+    <h4>{{ isEdit ? 'تعديل نوع مصروف' : 'إضافة نوع مصروف' }}</h4>
+  </div>
+
+  <div class="card-body">
+
+    <form (ngSubmit)="save()">
+
+      <div class="mb-3">
+        <label>الاسم</label>
+        <input type="text" class="form-control" [(ngModel)]="model.name" name="name" required>
+      </div>
+
+      <div class="mb-3">
+        <label>الوصف</label>
+        <textarea class="form-control" [(ngModel)]="model.description" name="description"></textarea>
+      </div>
+
+      <div class="mb-3">
+        <label>التصنيف</label>
+        <select class="form-control" [(ngModel)]="model.category" name="category">
+          <option [value]="1">مصروف عام</option>
+          <option [value]="2">تشغيل</option>
+          <option [value]="3">رواتب</option>
+          <option [value]="4">مرتجعات</option>
+          <option [value]="5">عهدة لموظف</option>
+          <option [value]="6">مصروفات صاحب عهدة</option>
+          <option [value]="7">تحويل بين مسؤولي الإيداع</option>
+          <option [value]="8">تسوية</option>
+        </select>
+      </div>
+
+      <button class="btn btn-primary">حفظ</button>
+
+    </form>
+
+  </div>
+</div>

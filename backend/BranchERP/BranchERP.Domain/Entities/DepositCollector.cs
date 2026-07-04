@@ -2,24 +2,19 @@
 {
     public class DepositCollector : BaseEntity
     {
-        // يربط مع AspNetUsers
-        public string UserId { get; set; }
+        public string? UserId { get; set; }
 
-        // المدينة الأساسية
-        public int CityId { get; set; }
-
-        // المنطقة (اختياري)
         public int? RegionId { get; set; }
 
-        // حالة التفعيل
         public bool IsActive { get; set; }
 
-        // Navigation Properties
-        public City City { get; set; }
         public Region? Region { get; set; }
 
-        // الصناديق المرتبطة بمسؤول الإيداع
-        public ICollection<CashBox> CashBoxes { get; set; }
-            = new List<CashBox>();
+        public List<CashBox> CashBoxes { get; set; }
+            = new();
+
+        // 🔥 علاقة Many-to-Many مع المدن
+        public ICollection<DepositCollectorCity> DepositCollectorCities { get; set; }
+            = new List<DepositCollectorCity>();
     }
 }

@@ -14,7 +14,9 @@ namespace BranchERP.Application.DTOs.ExpenseVouchers.Users
 
         public string PhoneNumber { get; set; } = string.Empty;
 
-        public int CityId { get; set; }
+        // 🔥 برضه هنا Multi-Cities
+        public List<int> CityIds { get; set; } = new();
+
         public int? RegionId { get; set; }
 
         public bool IsActive { get; set; }

@@ -13,6 +13,10 @@ using BranchERP.Application.DTOs.Employee;
 using BranchERP.Application.DTOs.EmployeePersonalAchievement;
 using BranchERP.Application.DTOs.EmployeePersonalTarget;
 using BranchERP.Application.DTOs.EmployeeShiftTarget;
+using BranchERP.Application.DTOs.ExpenseVouchers.CashBox;
+using BranchERP.Application.DTOs.ExpenseVouchers.ExpenseVoucher;
+using BranchERP.Application.DTOs.ExpenseVouchers.Lookups;
+using BranchERP.Application.DTOs.ExpenseVouchers.Users;
 using BranchERP.Application.DTOs.Region;
 using BranchERP.Application.DTOs.Reports.SalesSummaryReport;
 using BranchERP.Application.DTOs.ShortageType;
@@ -249,6 +253,102 @@ namespace BranchERP.Application.Mapping
                 .ForMember(d => d.QuantityCount, opt => opt.MapFrom(s => s.TotalQuantities ?? 0))
                 .ForMember(d => d.AvgInvoice, opt => opt.Ignore())   // هنحسبها يدويًا
                 .ForMember(d => d.AvgPieces, opt => opt.Ignore());   // هنحسبها يدويًا
+
+
+
+            //// Expenses
+            // ============================================================
+            // DepositCollector → DepositCollectorDto
+            CreateMap<DepositCollector, DepositCollectorDto>()
+                .ForMember(dest => dest.CityIds,
+                    opt => opt.MapFrom(src => src.DepositCollectorCities.Select(c => c.CityId)))
+                .ForMember(dest => dest.CityNames,
+                    opt => opt.MapFrom(src => src.DepositCollectorCities.Select(c => c.City.CityName)))
+                .ForMember(dest => dest.RegionName,
+                    opt => opt.MapFrom(src => src.Region != null ? src.Region.RegionName : null))
+                .ForMember(dest => dest.CashBoxes,
+                    opt => opt.MapFrom(src => src.CashBoxes));
+
+            // Create / Update
+            CreateMap<CreateDepositCollectorDto, DepositCollector>();
+            CreateMap<UpdateDepositCollectorDto, DepositCollector>();
+
+
+            // ============================================================
+            // PettyHolder → PettyHolderDto
+            // ============================================================
+            CreateMap<PettyHolder, PettyHolderDto>()
+                .ForMember(dest => dest.CityIds,
+                    opt => opt.MapFrom(src => src.PettyHolderCities.Select(c => c.CityId)))
+                .ForMember(dest => dest.CityNames,
+                    opt => opt.MapFrom(src => src.PettyHolderCities.Select(c => c.City.CityName)))
+                .ForMember(dest => dest.RegionName,
+                    opt => opt.MapFrom(src => src.Region != null ? src.Region.RegionName : null))
+                .ForMember(dest => dest.CashBoxes,
+                    opt => opt.MapFrom(src => src.CashBoxes));
+
+            // Create / Update
+            CreateMap<CreatePettyHolderDto, PettyHolder>();
+            CreateMap<UpdatePettyHolderDto, PettyHolder>();
+
+            // ============================================================
+            // CashBox
+            // ============================================================
+            // CREATE
+            CreateMap<CreateCashBoxDto, CashBox>()
+                .ForMember(dest => dest.Id, opt => opt.Ignore())
+                .ForMember(dest => dest.CurrentBalance, opt => opt.Ignore())
+                .ForMember(dest => dest.IsActive, opt => opt.Ignore())
+                .ForMember(dest => dest.DepositCollector, opt => opt.Ignore())
+                .ForMember(dest => dest.PettyHolder, opt => opt.Ignore())
+                .ForMember(dest => dest.Transactions, opt => opt.Ignore());
+
+            // UPDATE
+            CreateMap<UpdateCashBoxDto, CashBox>()
+                .ForMember(dest => dest.CurrentBalance, opt => opt.Ignore())
+                .ForMember(dest => dest.DepositCollector, opt => opt.Ignore())
+                .ForMember(dest => dest.PettyHolder, opt => opt.Ignore())
+                .ForMember(dest => dest.Transactions, opt => opt.Ignore());
+
+            CreateMap<CashBox, CashBoxDto>()
+             .ForMember(d => d.DepositCollectorName, o => o.Ignore())
+             .ForMember(d => d.PettyHolderName, o => o.MapFrom(s => s.PettyHolder != null ? s.PettyHolder.Name : null))
+             .ForMember(d => d.Transactions, o => o.MapFrom(s => s.Transactions));
+            // ============================================================
+            // CashBoxTransaction
+            // ============================================================
+            CreateMap<CashBoxTransaction, CashBoxTransactionDto>()
+                .ForMember(dest => dest.Direction, opt => opt.MapFrom(src => src.Direction.ToString()))
+                .ForMember(dest => dest.Type, opt => opt.MapFrom(src => src.TransactionType.ToString()))
+                .ForMember(dest => dest.BranchName, opt => opt.MapFrom(src => src.Branch != null ? src.Branch.BranchName : null))
+                .ForMember(dest => dest.PettyHolderName, opt => opt.MapFrom(src => src.PettyHolder != null ? src.PettyHolder.Name : null))
+                .ForMember(dest => dest.ExpenseVoucherNumber, opt => opt.MapFrom(src => src.ExpenseVoucher != null ? src.ExpenseVoucher.VoucherNumber : null));
+
+            // ============================================================
+            // ExpenseVoucher
+            // ============================================================
+            CreateMap<ExpenseVoucher, ExpenseVoucherDto>()
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()))
+                .ForMember(dest => dest.Lines, opt => opt.MapFrom(src => src.Lines));
+
+            // ============================================================
+            // ExpenseVoucherLine
+            // ============================================================
+            CreateMap<ExpenseVoucherLine, ExpenseVoucherLineDto>()
+                .ForMember(dest => dest.ExpenseTypeName, opt => opt.MapFrom(src => src.ExpenseType.Name))
+                .ForMember(dest => dest.BranchName, opt => opt.MapFrom(src => src.Branch != null ? src.Branch.BranchName : null))
+                .ForMember(dest => dest.PettyHolderName, opt => opt.MapFrom(src => src.PettyHolder != null ? src.PettyHolder.Name : null));
+
+            // ============================================================
+            // ExpenseType
+            // ============================================================
+            CreateMap<ExpenseType, ExpenseTypeDto>();
+            CreateMap<ExpenseTypeDto, ExpenseType>();
+
+            ////
+            CreateMap<UserCashCity, UserCashCityDto>()
+           .ForMember(dest => dest.CityName, opt => opt.MapFrom(src => src.City.CityName));
+
         }
     }
 }

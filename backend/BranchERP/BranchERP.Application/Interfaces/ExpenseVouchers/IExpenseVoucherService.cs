@@ -25,5 +25,7 @@ namespace BranchERP.Application.Interfaces.ExpenseVouchers
         Task<bool> DeleteAsync(int id);
 
         Task<bool> SubmitAsync(int id);   // تحويل من Draft → Submitted
+        Task<List<ExpenseVoucherDto>> GetMyVouchersAsync(string userId);
     }
+
 }

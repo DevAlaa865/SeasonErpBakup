@@ -18,49 +18,72 @@ namespace BranchERP.Infrastructure.Services
             _mapper = mapper;
         }
 
-        // ============================================================
-        // 1) Create PettyHolder
-        // ============================================================
+        // 1) Create PettyHolder مع مدن متعددة
         public async Task<PettyHolderDto> CreateAsync(CreatePettyHolderDto dto)
         {
-            var repo = _unitOfWork.Repository<PettyHolder>();
+            var holderRepo = _unitOfWork.Repository<PettyHolder>();
+            var linkRepo = _unitOfWork.Repository<PettyHolderCity>();
 
-            var entity = _mapper.Map<PettyHolder>(dto);
-            entity.IsActive = true;
+            var entity = new PettyHolder
+            {
+                Name = dto.Name,
+                PhoneNumber = dto.PhoneNumber,
+                RegionId = dto.RegionId,
+                IsActive = true
+            };
 
-            await repo.AddAsync(entity);
+            await holderRepo.AddAsync(entity);
             await _unitOfWork.CompleteAsync();
 
-            return _mapper.Map<PettyHolderDto>(entity);
+            foreach (var cityId in dto.CityIds)
+            {
+                await linkRepo.AddAsync(new PettyHolderCity
+                {
+                    PettyHolderId = entity.Id,
+                    CityId = cityId
+                });
+            }
+
+            await _unitOfWork.CompleteAsync();
+
+            return await GetByIdAsync(entity.Id) ?? new PettyHolderDto();
         }
 
-        // ============================================================
-        // 2) Update PettyHolder
-        // ============================================================
+        // 2) Update PettyHolder + المدن
         public async Task<bool> UpdateAsync(UpdatePettyHolderDto dto)
         {
-            var repo = _unitOfWork.Repository<PettyHolder>();
+            var holderRepo = _unitOfWork.Repository<PettyHolder>();
+            var linkRepo = _unitOfWork.Repository<PettyHolderCity>();
 
-            var entity = await repo.GetByIdAsync(dto.Id);
-
+            var entity = await holderRepo.GetByIdAsync(dto.Id);
             if (entity == null)
                 return false;
 
             entity.Name = dto.Name;
             entity.PhoneNumber = dto.PhoneNumber;
-            entity.CityId  = dto.CityId ;
             entity.RegionId = dto.RegionId;
             entity.IsActive = dto.IsActive;
 
-            repo.Update(entity);
-            await _unitOfWork.CompleteAsync();
+            holderRepo.Update(entity);
 
+            var oldLinks = await linkRepo.GetAllAsync(x => x.PettyHolderId == dto.Id);
+            foreach (var link in oldLinks)
+                linkRepo.Delete(link);
+
+            foreach (var cityId in dto.CityIds)
+            {
+                await linkRepo.AddAsync(new PettyHolderCity
+                {
+                    PettyHolderId = dto.Id,
+                    CityId = cityId
+                });
+            }
+
+            await _unitOfWork.CompleteAsync();
             return true;
         }
 
-        // ============================================================
         // 3) Get PettyHolder By Id
-        // ============================================================
         public async Task<PettyHolderDto?> GetByIdAsync(int id)
         {
             var repo = _unitOfWork.Repository<PettyHolder>();
@@ -68,7 +91,8 @@ namespace BranchERP.Infrastructure.Services
             var entity = await repo.GetAsync(
                 x => x.Id == id,
                 include: q => q
-                    .Include(x => x.City)
+                    .Include(x => x.PettyHolderCities)
+                        .ThenInclude(pc => pc.City)
                     .Include(x => x.Region)
                     .Include(x => x.CashBoxes)
             );
@@ -76,9 +100,7 @@ namespace BranchERP.Infrastructure.Services
             return _mapper.Map<PettyHolderDto>(entity);
         }
 
-        // ============================================================
         // 4) Get All PettyHolders
-        // ============================================================
         public async Task<List<PettyHolderDto>> GetAllAsync(bool? isActive = null)
         {
             var repo = _unitOfWork.Repository<PettyHolder>();
@@ -86,7 +108,8 @@ namespace BranchERP.Infrastructure.Services
             var data = await repo.GetAllAsync(
                 filter: x => !isActive.HasValue || x.IsActive == isActive.Value,
                 include: q => q
-                    .Include(x => x.City)
+                    .Include(x => x.PettyHolderCities)
+                        .ThenInclude(pc => pc.City)
                     .Include(x => x.Region)
                     .Include(x => x.CashBoxes)
             );
@@ -94,15 +117,12 @@ namespace BranchERP.Infrastructure.Services
             return _mapper.Map<List<PettyHolderDto>>(data);
         }
 
-        // ============================================================
         // 5) Activate / Deactivate PettyHolder
-        // ============================================================
         public async Task<bool> SetActiveAsync(int id, bool isActive)
         {
             var repo = _unitOfWork.Repository<PettyHolder>();
 
             var entity = await repo.GetByIdAsync(id);
-
             if (entity == null)
                 return false;
 

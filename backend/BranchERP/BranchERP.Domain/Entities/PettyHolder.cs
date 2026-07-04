@@ -13,17 +13,23 @@ namespace BranchERP.Domain.Entities
 
         public string PhoneNumber { get; set; } = string.Empty;
 
-        public int CityId { get; set; }
-        public int? RegionId { get; set; }
+        // ❌ هنشيل CityId و City (مش هيبقوا موجودين)
+        // public int CityId { get; set; }
+        // public City City { get; set; }
 
+        public int? RegionId { get; set; }
         public bool IsActive { get; set; }
 
-        // Navigation
-        public City City { get; set; }
         public Region? Region { get; set; }
 
-        public ICollection<CashBox> CashBoxes { get; set; }
+        // 🔥 الجديد: ربطه باليوزر (لو موجود)
+        public string? UserId { get; set; }
+
+        public List<CashBox> CashBoxes { get; set; }
             = new List<CashBox>();
 
+        // 🔥 علاقة Many-to-Many مع المدن
+        public ICollection<PettyHolderCity> PettyHolderCities { get; set; }
+            = new List<PettyHolderCity>();
     }
 }
